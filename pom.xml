@@ -91,6 +91,17 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!--
+          H2 DB FOR TESTING
+          * By default, @DataJpaTest sees H2 is available and uses it for tests
+          *ignoring MySQL for the test environment.
+        -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
