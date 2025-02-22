@@ -8,7 +8,6 @@ import lombok.*;
 @Data // Lombok - generates getters, setters, toString, equals, hashCode
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class Artist {
 
     @Id
