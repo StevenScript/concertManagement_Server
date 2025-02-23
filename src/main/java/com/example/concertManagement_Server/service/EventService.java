@@ -19,4 +19,19 @@ public class EventService {
         Optional<Event> optional = eventRepository.findById(id);
         return optional.orElse(null);
     }
+
+    public Event createEvent(Event event) {
+        return eventRepository.save(event);
+    }
+
+    public Event updateEvent(Long id, Event updatedData) {
+        return eventRepository.findById(id).map(e -> {
+            e.setEventDate(updatedData.getEventDate());
+            e.setTicketPrice(updatedData.getTicketPrice());
+            e.setAvailableTickets(updatedData.getAvailableTickets());
+            e.setVenue(updatedData.getVenue());
+            // etc.
+            return eventRepository.save(e);
+        }).orElse(null);
+    }
 }
