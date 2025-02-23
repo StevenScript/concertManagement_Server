@@ -19,4 +19,17 @@ public class TicketService {
         Optional<Ticket> optional = ticketRepository.findById(id);
         return optional.orElse(null);
     }
+
+    public Ticket createTicket(Ticket ticket) {
+        return ticketRepository.save(ticket);
+    }
+
+    public Ticket updateTicket(Long id, Ticket updatedData) {
+        return ticketRepository.findById(id).map(t -> {
+            t.setBuyerName(updatedData.getBuyerName());
+            t.setTicketType(updatedData.getTicketType());
+            t.setSeatNumber(updatedData.getSeatNumber());
+            return ticketRepository.save(t);
+        }).orElse(null);
+    }
 }
