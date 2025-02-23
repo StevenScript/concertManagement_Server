@@ -3,16 +3,16 @@ package com.example.concertManagement_Server.service;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.repository.ArtistRepository;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
-import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.Optional;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+import java.util.Optional;
+
+@ExtendWith(MockitoExtension.class)
 public class ArtistServiceTest {
 
     @Mock
@@ -21,10 +21,6 @@ public class ArtistServiceTest {
     @InjectMocks
     private ArtistService artistService;        // This is what we're testing (doesn't exist yet)
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void testGetArtistById_Found() {
@@ -55,7 +51,7 @@ public class ArtistServiceTest {
         // 1. Call service with a non-existing artist ID
         Artist result = artistService.getArtistById(999L);
 
-        // 2. We expect null or an exception (implementation choice).
+        // 2. Expect null or an exception (implementation choice).
         Assertions.assertNull(result, "Artist should be null if not found");
 
         // 3. Verify the repository was called
