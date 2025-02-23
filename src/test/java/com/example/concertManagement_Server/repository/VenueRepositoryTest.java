@@ -19,7 +19,7 @@ public class VenueRepositoryTest {
         venue.setLocation("Test Location");
         venue.setCapacity(500);
 
-        // 2. Save it using thw repository
+        // 2. Save it using the repository
         Venue savedVenue = venueRepository.save(venue);
 
         // 3. Verify it got an ID
