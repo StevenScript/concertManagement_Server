@@ -35,4 +35,11 @@ public class EventService {
             return eventRepository.save(e);
         }).orElse(null);
     }
+
+    public Event addArtistToEvent(Long eventId, Artist artist) {
+        return eventRepository.findById(eventId).map(e -> {
+            e.getArtists().add(artist); // add to the set
+            return eventRepository.save(e);
+        }).orElse(null);
+    }
 }
