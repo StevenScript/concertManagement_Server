@@ -24,4 +24,15 @@ public class ArtistService {
         // Potential business logic, e.g., validate fields
         return artistRepository.save(artist);
     }
+
+    public Artist updateArtist(Long id, Artist updatedData) {
+        return artistRepository.findById(id).map(artist -> {
+            // We found an Artist, apply changes
+            artist.setStageName(updatedData.getStageName());
+            artist.setGenre(updatedData.getGenre());
+            artist.setHomeCity(updatedData.getHomeCity());
+
+            return artistRepository.save(artist);
+        }).orElse(null);
+    }
 }
