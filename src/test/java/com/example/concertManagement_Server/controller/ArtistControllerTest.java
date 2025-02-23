@@ -53,4 +53,25 @@ public class ArtistControllerTest {
 
         verify(artistService).getArtistById(999L);
     }
+
+    @Test
+    void testCreateArtist() {
+        Artist newArtist = new Artist();
+        newArtist.setStageName("StevenWonder");
+
+        Artist savedArtist = new Artist();
+        savedArtist.setId(10L);
+        savedArtist.setStageName("StevenWonder");
+
+        when(artistService.createArtist(newArtist)).thenReturn(savedArtist);
+
+        ResponseEntity<Artist> response = artistController.createArtist(newArtist);
+        assertNotNull(response);
+        assertEquals(201, response.getStatusCodeValue(), "Should return 201 Created");
+        assertNotNull(response.getBody());
+        assertEquals(10L, response.getBody().getId());
+        assertEquals("StevenWonder", response.getBody().getStageName());
+
+        verify(artistService).createArtist(newArtist);
+    }
 }
