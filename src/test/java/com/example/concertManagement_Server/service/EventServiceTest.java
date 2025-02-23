@@ -16,10 +16,10 @@ import static org.mockito.Mockito.*;
 public class EventServiceTest {
 
     @Mock
-    private EventRepository eventRepository; // no real DB
+    private EventRepository eventRepository;
 
     @InjectMocks
-    private EventService eventService; // DOES NOT EXIST YET
+    private EventService eventService;
 
     @Test
     void testGetEventById_Found() {
