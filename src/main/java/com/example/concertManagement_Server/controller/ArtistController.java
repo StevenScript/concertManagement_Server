@@ -24,4 +24,10 @@ public class ArtistController {
         }
         return ResponseEntity.ok(artist);
     }
+
+    @PostMapping
+    public ResponseEntity<Artist> createArtist(@RequestBody Artist artist) {
+        Artist created = artistService.createArtist(artist);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    }
 }
