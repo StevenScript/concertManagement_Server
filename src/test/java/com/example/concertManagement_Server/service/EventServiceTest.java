@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.repository.EventRepository;
 import org.junit.jupiter.api.*;
@@ -97,5 +98,33 @@ public class EventServiceTest {
         Assertions.assertNull(result);
         verify(eventRepository).findById(999L);
         verify(eventRepository, never()).save(any(Event.class));
+    }
+
+    @Test
+    void testAddArtistToEvent() {
+        // Assume an event with ID=5
+        Event existing = new Event();
+        existing.setId(5L);
+
+        // The event's "artists" Set is initially empty or has some members
+        // Attempt to add a new Artist
+
+        when(eventRepository.findById(5L)).thenReturn(Optional.of(existing));
+        when(eventRepository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Artist newArtist = new Artist();
+        newArtist.setId(100L);
+        newArtist.setStageName("New Artist");
+
+        // Act
+        Event result = eventService.addArtistToEvent(5L, newArtist);
+
+        // Assert
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(1, result.getArtists().size());
+        Assertions.assertTrue(result.getArtists().contains(newArtist));
+
+        verify(eventRepository).findById(5L);
+        verify(eventRepository).save(any(Event.class));
     }
 }

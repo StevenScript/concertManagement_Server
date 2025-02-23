@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.repository.EventRepository;
 import org.springframework.stereotype.Service;
