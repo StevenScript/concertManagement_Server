@@ -85,4 +85,46 @@ public class ArtistServiceTest {
         // 6. Verify the repository was used
         verify(artistRepository, times(1)).save(newArtist);
     }
+
+    @Test
+    void testUpdateArtist_Found() {
+        // Suppose the DB has an existing Artist with ID=1
+        Artist existing = new Artist();
+        existing.setId(1L);
+        existing.setStageName("Old Name");
+        existing.setGenre("Rock");
+
+        when(artistRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        Artist updatedData = new Artist();
+        updatedData.setStageName("New Name");
+        updatedData.setGenre("Pop");
+
+        // Return the updated object in save(...)
+        when(artistRepository.save(any(Artist.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        Artist result = artistService.updateArtist(1L, updatedData);
+
+        // Assert
+        Assertions.assertNotNull(result, "Should return the updated Artist");
+        Assertions.assertEquals("New Name", result.getStageName());
+        Assertions.assertEquals("Pop", result.getGenre());
+        // verify repo calls
+        verify(artistRepository).findById(1L);
+        verify(artistRepository).save(any(Artist.class));
+    }
+
+    @Test
+    void testUpdateArtist_NotFound() {
+        when(artistRepository.findById(999L)).thenReturn(Optional.empty());
+
+        Artist updatedData = new Artist();
+        updatedData.setStageName("Doesn't matter");
+
+        Artist result = artistService.updateArtist(999L, updatedData);
+        Assertions.assertNull(result, "Should return null if no such artist");
+        verify(artistRepository).findById(999L);
+        verify(artistRepository, never()).save(any(Artist.class));
+    }
 }
