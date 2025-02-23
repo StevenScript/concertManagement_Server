@@ -74,4 +74,43 @@ public class ArtistControllerTest {
 
         verify(artistService).createArtist(newArtist);
     }
+
+    @Test
+    void testUpdateArtist() {
+        Artist existing = new Artist();
+        existing.setId(2L);
+        existing.setStageName("Old Name");
+
+        Artist updatedData = new Artist();
+        updatedData.setStageName("New Name");
+
+        Artist updatedResult = new Artist();
+        updatedResult.setId(2L);
+        updatedResult.setStageName("New Name");
+
+        when(artistService.updateArtist(2L, updatedData)).thenReturn(updatedResult);
+
+        ResponseEntity<Artist> response = artistController.updateArtist(2L, updatedData);
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals("New Name", response.getBody().getStageName());
+
+        verify(artistService).updateArtist(2L, updatedData);
+    }
+
+    @Test
+    void testUpdateArtist_NotFound() {
+        Artist updatedData = new Artist();
+        updatedData.setStageName("Does not matter");
+
+        when(artistService.updateArtist(999L, updatedData)).thenReturn(null);
+
+        ResponseEntity<Artist> response = artistController.updateArtist(999L, updatedData);
+        assertNotNull(response);
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+
+        verify(artistService).updateArtist(999L, updatedData);
+    }
 }
