@@ -30,4 +30,13 @@ public class ArtistController {
         Artist created = artistService.createArtist(artist);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Artist> updateArtist(@PathVariable Long id, @RequestBody Artist artistData) {
+        Artist updated = artistService.updateArtist(id, artistData);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
 }
