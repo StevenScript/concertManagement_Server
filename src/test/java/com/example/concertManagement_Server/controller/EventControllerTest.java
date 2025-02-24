@@ -1,0 +1,137 @@
+package com.example.concertManagement_Server.controller;
+
+import com.example.concertManagement_Server.model.Artist;
+import com.example.concertManagement_Server.model.Event;
+import com.example.concertManagement_Server.service.EventService;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
+
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class EventControllerTest {
+
+    @Mock
+    private EventService eventService; // Mock the service
+
+    @InjectMocks
+    private EventController eventController;
+
+    @Test
+    void testGetEvent_Found() {
+        // Suppose the service returns an event for ID=99
+        Event mockEvent = new Event();
+        mockEvent.setId(99L);
+        mockEvent.setEventDate(LocalDate.of(2025, 5, 10));
+
+        when(eventService.getEventById(99L)).thenReturn(mockEvent);
+
+        ResponseEntity<Event> response = eventController.getEvent(99L);
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(LocalDate.of(2025, 5, 10), response.getBody().getEventDate());
+
+        verify(eventService).getEventById(99L);
+    }
+
+    @Test
+    void testGetEvent_NotFound() {
+        when(eventService.getEventById(999L)).thenReturn(null);
+
+        ResponseEntity<Event> response = eventController.getEvent(999L);
+        assertNotNull(response);
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+
+        verify(eventService).getEventById(999L);
+    }
+
+    @Test
+    void testCreateEvent() {
+        Event newEvent = new Event();
+        newEvent.setEventDate(LocalDate.of(2025, 6, 1));
+
+        Event savedEvent = new Event();
+        savedEvent.setId(10L);
+        savedEvent.setEventDate(LocalDate.of(2025, 6, 1));
+
+        when(eventService.createEvent(newEvent)).thenReturn(savedEvent);
+
+        ResponseEntity<Event> response = eventController.createEvent(newEvent);
+        assertNotNull(response);
+        assertEquals(201, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(10L, response.getBody().getId());
+
+        verify(eventService).createEvent(newEvent);
+    }
+
+    @Test
+    void testUpdateEvent_Found() {
+        Event updatedData = new Event();
+        updatedData.setEventDate(LocalDate.of(2025, 7, 10));
+
+        Event updatedResult = new Event();
+        updatedResult.setId(5L);
+        updatedResult.setEventDate(LocalDate.of(2025, 7, 10));
+
+        when(eventService.updateEvent(5L, updatedData)).thenReturn(updatedResult);
+
+        ResponseEntity<Event> response = eventController.updateEvent(5L, updatedData);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(LocalDate.of(2025, 7, 10), response.getBody().getEventDate());
+
+        verify(eventService).updateEvent(5L, updatedData);
+    }
+
+    @Test
+    void testUpdateEvent_NotFound() {
+        Event updatedData = new Event();
+        updatedData.setEventDate(LocalDate.of(2025, 10, 1));
+
+        when(eventService.updateEvent(999L, updatedData)).thenReturn(null);
+
+        ResponseEntity<Event> response = eventController.updateEvent(999L, updatedData);
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+
+        verify(eventService).updateEvent(999L, updatedData);
+    }
+
+    @Test
+    void testAddArtistToEvent_Found() {
+        Artist newArtist = new Artist();
+        newArtist.setId(101L);
+
+        Event updatedEvent = new Event();
+        updatedEvent.setId(5L);
+
+        when(eventService.addArtistToEvent(5L, newArtist)).thenReturn(updatedEvent);
+
+        ResponseEntity<Event> response = eventController.addArtistToEvent(5L, newArtist);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        verify(eventService).addArtistToEvent(5L, newArtist);
+    }
+
+    @Test
+    void testAddArtistToEvent_NotFound() {
+        Artist newArtist = new Artist();
+        newArtist.setId(999L);
+
+        when(eventService.addArtistToEvent(999L, newArtist)).thenReturn(null);
+
+        ResponseEntity<Event> response = eventController.addArtistToEvent(999L, newArtist);
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+        verify(eventService).addArtistToEvent(999L, newArtist);
+    }
+}
