@@ -29,4 +29,13 @@ public class TicketController {
         Ticket created = ticketService.createTicket(ticket);
         return ResponseEntity.status(201).body(created);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Ticket> updateTicket(@PathVariable Long id, @RequestBody Ticket ticketData) {
+        Ticket updated = ticketService.updateTicket(id, ticketData);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
 }
