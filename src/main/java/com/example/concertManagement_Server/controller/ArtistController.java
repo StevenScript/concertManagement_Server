@@ -1,19 +1,25 @@
 package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.model.Artist;
+import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.service.ArtistService;
+import com.example.concertManagement_Server.service.EventService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/artists")
 public class ArtistController {
 
     private final ArtistService artistService;
+    private final EventService eventService;
 
-    public ArtistController(ArtistService artistService) {
+    public ArtistController(ArtistService artistService, EventService eventService) {
         this.artistService = artistService;
+        this.eventService = eventService;
     }
 
     @GetMapping("/{id}")
@@ -38,5 +44,11 @@ public class ArtistController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/{id}/events")
+    public ResponseEntity<List<Event>> getEventsForArtist(@PathVariable Long id) {
+        List<Event> events = eventService.listAllEventsForArtist(id);
+        return ResponseEntity.ok(events);
     }
 }
