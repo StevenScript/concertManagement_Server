@@ -1,15 +1,25 @@
 package com.example.concertManagement_Server.repository;
 
 import com.example.concertManagement_Server.model.Artist;
+import com.example.concertManagement_Server.model.Venue;
+import com.example.concertManagement_Server.model.Event;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.util.List;
+
 @DataJpaTest
 public class ArtistRepositoryTest {
     @Autowired
     private ArtistRepository artistRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private VenueRepository venueRepository;
 
     @Test
     void testSaveAndFindArtist() {
@@ -38,5 +48,30 @@ public class ArtistRepositoryTest {
         Assertions.assertEquals("Rock", foundArtist.getGenre());
         Assertions.assertEquals(4, foundArtist.getMembersCount());
         Assertions.assertEquals("Test City", foundArtist.getHomeCity());
+    }
+
+    @Test
+    void testFindArtistsByVenueId() {
+        // 1) create a Venue
+        Venue venue = new Venue();
+        venue.setName("Test Venue");
+        venue = venueRepository.save(venue);
+
+        // 2) create an Artist
+        Artist artist = new Artist();
+        artist.setStageName("The Testers");
+        artist = artistRepository.save(artist);
+
+        // 3) create an Event linking the Venue + Artist
+        Event event = new Event();
+        event.setVenue(venue);
+        eventRepository.save(event);
+        event.getArtists().add(artist);
+        eventRepository.save(event);
+
+        // 4) call the method we want
+        List<Artist> found = artistRepository.findArtistsByVenueId(venue.getId());
+        Assertions.assertEquals(1, found.size());
+        Assertions.assertEquals("The Testers", found.get(0).getStageName());
     }
 }
