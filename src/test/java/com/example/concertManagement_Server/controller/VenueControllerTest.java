@@ -44,4 +44,22 @@ public class VenueControllerTest {
         assertNull(response.getBody());
         verify(venueService).getVenueById(999L);
     }
+
+    @Test
+    void testCreateVenue() {
+        Venue newVenue = new Venue();
+        newVenue.setName("New Venue");
+
+        Venue savedVenue = new Venue();
+        savedVenue.setId(777L);
+        savedVenue.setName("New Venue");
+
+        when(venueService.createVenue(newVenue)).thenReturn(savedVenue);
+
+        ResponseEntity<Venue> response = venueController.createVenue(newVenue);
+        assertEquals(201, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(777L, response.getBody().getId());
+        verify(venueService).createVenue(newVenue);
+    }
 }
