@@ -30,4 +30,13 @@ public class VenueController {
         Venue created = venueService.createVenue(venue);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Venue> updateVenue(@PathVariable Long id, @RequestBody Venue venueData) {
+        Venue updated = venueService.updateVenue(id, venueData);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
 }
