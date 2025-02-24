@@ -1,19 +1,26 @@
 package com.example.concertManagement_Server.controller;
 
+import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Venue;
+import com.example.concertManagement_Server.service.ArtistService;
 import com.example.concertManagement_Server.service.VenueService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/venues")
 public class VenueController {
 
     private final VenueService venueService;
+    private final ArtistService artistService;
 
-    public VenueController(VenueService venueService) {
+    public VenueController(VenueService venueService, ArtistService artistService) {
+
         this.venueService = venueService;
+        this.artistService = artistService;
     }
 
     @GetMapping("/{id}")
@@ -38,5 +45,11 @@ public class VenueController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/{id}/artists")
+    public ResponseEntity<List<Artist>> getArtistsForVenue(@PathVariable Long id) {
+        List<Artist> artists = artistService.listAllArtistsForVenue(id);
+        return ResponseEntity.ok(artists);
     }
 }
