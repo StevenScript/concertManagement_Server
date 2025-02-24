@@ -29,4 +29,13 @@ public class EventController {
         Event created = eventService.createEvent(event);
         return ResponseEntity.status(201).body(created);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event eventData) {
+        Event updated = eventService.updateEvent(id, eventData);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
 }
