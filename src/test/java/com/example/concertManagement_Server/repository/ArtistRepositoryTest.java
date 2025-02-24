@@ -69,7 +69,7 @@ public class ArtistRepositoryTest {
         event.getArtists().add(artist);
         eventRepository.save(event);
 
-        // 4) call the method we want
+        // 4) call the method
         List<Artist> found = artistRepository.findArtistsByVenueId(venue.getId());
         Assertions.assertEquals(1, found.size());
         Assertions.assertEquals("The Testers", found.get(0).getStageName());
