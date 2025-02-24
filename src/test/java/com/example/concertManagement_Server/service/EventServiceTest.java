@@ -9,8 +9,11 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -126,5 +129,22 @@ public class EventServiceTest {
 
         verify(eventRepository).findById(5L);
         verify(eventRepository).save(any(Event.class));
+    }
+
+    @Test
+    void testListAllEventsForArtist() {
+        // Repository returns one event
+        Event mockEvent = new Event();
+        mockEvent.setId(1L);
+        mockEvent.setEventDate(LocalDate.of(2025, 5, 10));
+
+        when(eventRepository.findEventsByArtistId(10L))
+                .thenReturn(Collections.singletonList(mockEvent));
+
+        List<Event> results = eventService.listAllEventsForArtist(10L);
+        assertEquals(1, results.size());
+        assertEquals(LocalDate.of(2025, 5, 10), results.get(0).getEventDate());
+
+        verify(eventRepository).findEventsByArtistId(10L);
     }
 }

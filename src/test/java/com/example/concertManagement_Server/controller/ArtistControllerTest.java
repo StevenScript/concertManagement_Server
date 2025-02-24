@@ -1,13 +1,17 @@
 package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.model.Artist;
+import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.service.ArtistService;
+import com.example.concertManagement_Server.service.EventService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -18,6 +22,9 @@ public class ArtistControllerTest {
 
     @Mock
     private ArtistService artistService;
+
+    @Mock
+    private EventService eventService;
 
     @InjectMocks
     private ArtistController artistController;
@@ -112,5 +119,22 @@ public class ArtistControllerTest {
         assertNull(response.getBody());
 
         verify(artistService).updateArtist(999L, updatedData);
+    }
+
+    @Test
+    void testGetEventsForArtist() {
+        Event mockEvent = new Event();
+        mockEvent.setId(100L);
+
+        when(eventService.listAllEventsForArtist(5L))
+                .thenReturn(Collections.singletonList(mockEvent));
+
+        ResponseEntity<List<Event>> response = artistController.getEventsForArtist(5L);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        assertEquals(100L, response.getBody().get(0).getId());
+
+        verify(eventService).listAllEventsForArtist(5L);
     }
 }
