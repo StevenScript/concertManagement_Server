@@ -62,4 +62,34 @@ public class VenueControllerTest {
         assertEquals(777L, response.getBody().getId());
         verify(venueService).createVenue(newVenue);
     }
+
+    @Test
+    void testUpdateVenue_Found() {
+        Venue updatedData = new Venue();
+        updatedData.setName("Updated Name");
+
+        Venue updatedVenue = new Venue();
+        updatedVenue.setId(5L);
+        updatedVenue.setName("Updated Name");
+
+        when(venueService.updateVenue(5L, updatedData)).thenReturn(updatedVenue);
+
+        ResponseEntity<Venue> response = venueController.updateVenue(5L, updatedData);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("Updated Name", response.getBody().getName());
+        verify(venueService).updateVenue(5L, updatedData);
+    }
+
+    @Test
+    void testUpdateVenue_NotFound() {
+        Venue updatedData = new Venue();
+        updatedData.setName("Nope");
+
+        when(venueService.updateVenue(999L, updatedData)).thenReturn(null);
+
+        ResponseEntity<Venue> response = venueController.updateVenue(999L, updatedData);
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+        verify(venueService).updateVenue(999L, updatedData);
+    }
 }
