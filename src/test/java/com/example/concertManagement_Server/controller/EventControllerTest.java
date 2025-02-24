@@ -72,4 +72,37 @@ public class EventControllerTest {
 
         verify(eventService).createEvent(newEvent);
     }
+
+    @Test
+    void testUpdateEvent_Found() {
+        Event updatedData = new Event();
+        updatedData.setEventDate(LocalDate.of(2025, 7, 10));
+
+        Event updatedResult = new Event();
+        updatedResult.setId(5L);
+        updatedResult.setEventDate(LocalDate.of(2025, 7, 10));
+
+        when(eventService.updateEvent(5L, updatedData)).thenReturn(updatedResult);
+
+        ResponseEntity<Event> response = eventController.updateEvent(5L, updatedData);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(LocalDate.of(2025, 7, 10), response.getBody().getEventDate());
+
+        verify(eventService).updateEvent(5L, updatedData);
+    }
+
+    @Test
+    void testUpdateEvent_NotFound() {
+        Event updatedData = new Event();
+        updatedData.setEventDate(LocalDate.of(2025, 10, 1));
+
+        when(eventService.updateEvent(999L, updatedData)).thenReturn(null);
+
+        ResponseEntity<Event> response = eventController.updateEvent(999L, updatedData);
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+
+        verify(eventService).updateEvent(999L, updatedData);
+    }
 }
