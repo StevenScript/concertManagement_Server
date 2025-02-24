@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.controller;
 
+import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.service.EventService;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,15 @@ public class EventController {
     @PutMapping("/{id}")
     public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event eventData) {
         Event updated = eventService.updateEvent(id, eventData);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/{id}/artists")
+    public ResponseEntity<Event> addArtistToEvent(@PathVariable Long id, @RequestBody Artist artist) {
+        Event updated = eventService.addArtistToEvent(id, artist);
         if (updated == null) {
             return ResponseEntity.notFound().build();
         }
