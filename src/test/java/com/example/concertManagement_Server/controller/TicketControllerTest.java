@@ -63,4 +63,35 @@ public class TicketControllerTest {
 
         verify(ticketService).createTicket(newTicket);
     }
+
+    @Test
+    void testUpdateTicket_Found() {
+        Ticket updatedData = new Ticket();
+        updatedData.setBuyerName("Bobby");
+
+        Ticket updatedTicket = new Ticket();
+        updatedTicket.setId(5L);
+        updatedTicket.setBuyerName("Bobby");
+
+        when(ticketService.updateTicket(5L, updatedData)).thenReturn(updatedTicket);
+
+        ResponseEntity<Ticket> response = ticketController.updateTicket(5L, updatedData);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals("Bobby", response.getBody().getBuyerName());
+        verify(ticketService).updateTicket(5L, updatedData);
+    }
+
+    @Test
+    void testUpdateTicket_NotFound() {
+        Ticket updatedData = new Ticket();
+        updatedData.setBuyerName("NoOne");
+
+        when(ticketService.updateTicket(999L, updatedData)).thenReturn(null);
+
+        ResponseEntity<Ticket> response = ticketController.updateTicket(999L, updatedData);
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+        verify(ticketService).updateTicket(999L, updatedData);
+    }
 }
