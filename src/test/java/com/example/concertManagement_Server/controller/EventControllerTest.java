@@ -52,4 +52,24 @@ public class EventControllerTest {
 
         verify(eventService).getEventById(999L);
     }
+
+    @Test
+    void testCreateEvent() {
+        Event newEvent = new Event();
+        newEvent.setEventDate(LocalDate.of(2025, 6, 1));
+
+        Event savedEvent = new Event();
+        savedEvent.setId(10L);
+        savedEvent.setEventDate(LocalDate.of(2025, 6, 1));
+
+        when(eventService.createEvent(newEvent)).thenReturn(savedEvent);
+
+        ResponseEntity<Event> response = eventController.createEvent(newEvent);
+        assertNotNull(response);
+        assertEquals(201, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(10L, response.getBody().getId());
+
+        verify(eventService).createEvent(newEvent);
+    }
 }
