@@ -105,4 +105,33 @@ public class EventControllerTest {
 
         verify(eventService).updateEvent(999L, updatedData);
     }
+
+    @Test
+    void testAddArtistToEvent_Found() {
+        Artist newArtist = new Artist();
+        newArtist.setId(101L);
+
+        Event updatedEvent = new Event();
+        updatedEvent.setId(5L);
+
+        when(eventService.addArtistToEvent(5L, newArtist)).thenReturn(updatedEvent);
+
+        ResponseEntity<Event> response = eventController.addArtistToEvent(5L, newArtist);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        verify(eventService).addArtistToEvent(5L, newArtist);
+    }
+
+    @Test
+    void testAddArtistToEvent_NotFound() {
+        Artist newArtist = new Artist();
+        newArtist.setId(999L);
+
+        when(eventService.addArtistToEvent(999L, newArtist)).thenReturn(null);
+
+        ResponseEntity<Event> response = eventController.addArtistToEvent(999L, newArtist);
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+        verify(eventService).addArtistToEvent(999L, newArtist);
+    }
 }
