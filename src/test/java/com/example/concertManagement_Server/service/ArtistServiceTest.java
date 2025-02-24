@@ -10,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.*;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -126,5 +128,21 @@ public class ArtistServiceTest {
         Assertions.assertNull(result, "Should return null if no such artist");
         verify(artistRepository).findById(999L);
         verify(artistRepository, never()).save(any(Artist.class));
+    }
+
+    @Test
+    void testListAllArtistsForVenue() {
+        Artist mockArtist = new Artist();
+        mockArtist.setId(1L);
+        mockArtist.setStageName("The Testers");
+
+        when(artistRepository.findArtistsByVenueId(10L))
+                .thenReturn(Collections.singletonList(mockArtist));
+
+        List<Artist> results = artistService.listAllArtistsForVenue(10L);
+        Assertions.assertEquals(1, results.size());
+        Assertions.assertEquals("The Testers", results.get(0).getStageName());
+
+        verify(artistRepository).findArtistsByVenueId(10L);
     }
 }
