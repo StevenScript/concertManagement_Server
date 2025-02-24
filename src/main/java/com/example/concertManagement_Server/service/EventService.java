@@ -6,6 +6,7 @@ import com.example.concertManagement_Server.repository.EventRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.List;
 
 @Service
 public class EventService {
@@ -41,5 +42,9 @@ public class EventService {
             e.getArtists().add(artist); // add to the set
             return eventRepository.save(e);
         }).orElse(null);
+    }
+
+    public List<Event> listAllEventsForArtist(Long artistId) {
+        return eventRepository.findEventsByArtistId(artistId);
     }
 }
