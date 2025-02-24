@@ -4,6 +4,7 @@ import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.repository.ArtistRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -34,5 +35,9 @@ public class ArtistService {
 
             return artistRepository.save(artist);
         }).orElse(null);
+    }
+
+    public List<Artist> listAllArtistsForVenue(Long venueId) {
+        return artistRepository.findArtistsByVenueId(venueId);
     }
 }
