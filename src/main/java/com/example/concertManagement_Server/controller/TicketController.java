@@ -23,4 +23,10 @@ public class TicketController {
         }
         return ResponseEntity.ok(t);
     }
+
+    @PostMapping
+    public ResponseEntity<Ticket> createTicket(@RequestBody Ticket ticket) {
+        Ticket created = ticketService.createTicket(ticket);
+        return ResponseEntity.status(201).body(created);
+    }
 }

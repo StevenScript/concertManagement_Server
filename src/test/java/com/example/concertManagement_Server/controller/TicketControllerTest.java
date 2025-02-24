@@ -44,4 +44,23 @@ public class TicketControllerTest {
         assertNull(response.getBody());
         verify(ticketService).getTicketById(999L);
     }
+
+    @Test
+    void testCreateTicket() {
+        Ticket newTicket = new Ticket();
+        newTicket.setBuyerName("Bob");
+
+        Ticket savedTicket = new Ticket();
+        savedTicket.setId(10L);
+        savedTicket.setBuyerName("Bob");
+
+        when(ticketService.createTicket(newTicket)).thenReturn(savedTicket);
+
+        ResponseEntity<Ticket> response = ticketController.createTicket(newTicket);
+        assertEquals(201, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(10L, response.getBody().getId());
+
+        verify(ticketService).createTicket(newTicket);
+    }
 }
