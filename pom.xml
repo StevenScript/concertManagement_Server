@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.4.3</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.example</groupId>
 	<artifactId>concertManagement_Server</artifactId>
@@ -30,90 +31,64 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
-		<!--
-          SPRING BOOT STARTER DATA JPA:
-            * Provides Spring Data JPA (Hibernate) integration.
-        -->
+		<!-- Spring Boot Starter Data JPA -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-
-		<!--
-         SPRING BOOT STARTER WEB:
-           * Provides the web framework (Spring MVC, embedded Tomcat, etc.).
-       -->
+		<!-- Spring Boot Starter Web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
-		<!--
-         SPRING BOOT DEVTOOLS:
-           * Helps with hot-reloading and faster development.
-       -->
+		<!-- Spring Boot DevTools -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
-
-		<!--
-          MYSQL CONNECTOR:
-            * The JDBC driver to connect to a MySQL database.
-            * Scope "runtime" means it’s not needed at compile time, only at runtime.
-        -->
+		<!-- MySQL Connector -->
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-
-		<!--
-          LOMBOK:
-            * Eliminates boilerplate code with annotations (e.g., @Data, @Getter, @Setter).
-            * Marked <optional>true>, meaning not all downstream consumers require it.
-        -->
+		<!-- Lombok (you may try removing <optional>true</optional> if problems persist) -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<version>1.18.26</version>
+			<scope>provided</scope>
+			<!-- You can remove <optional>true</optional> if necessary -->
 		</dependency>
-
-		<!--
-          SPRING BOOT STARTER TEST:
-            * Aggregates common testing libraries (JUnit, Mockito, Spring Test, etc.).
-            * Scope "test" means it's only for testing.
-        -->
+		<!-- Spring Boot Starter Test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-		<!--
-          H2 DB FOR TESTING
-          * By default, @DataJpaTest sees H2 is available and uses it for tests
-          *ignoring MySQL for the test environment.
-        -->
+		<!-- H2 Database for Testing -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.10.1</version>
 				<configuration>
+					<source>17</source>
+					<target>17</target>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>1.18.26</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
@@ -132,5 +107,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
+
