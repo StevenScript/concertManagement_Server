@@ -12,6 +12,7 @@ import java.util.Set;
 @Data // Lombok - generates getters, setters, toString, equals, hashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = "events")
 public class Artist {
 
     @Id

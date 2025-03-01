@@ -56,16 +56,22 @@ public class EventService {
 
     public Event addArtistToEvent(Long eventId, Long artistId) {
         Optional<Event> eventOpt = eventRepository.findById(eventId);
-        Optional<Artist> artistOpt = artistRepository.findById(artistId);
-
-        if (eventOpt.isPresent() && artistOpt.isPresent()) {
-            Event event = eventOpt.get();
-            Artist artist = artistOpt.get();
-
-            event.getArtists().add(artist);
-            return eventRepository.save(event);
+        // If the event doesn't exist, return null now, and never query the artist
+        if (eventOpt.isEmpty()) {
+            return null;
         }
-        return null; // Return null if event or artist does not exist
+
+        // Then check the artist
+        Optional<Artist> artistOpt = artistRepository.findById(artistId);
+        if (artistOpt.isEmpty()) {
+            return null;
+        }
+
+        // Both event and artist exist
+        Event event = eventOpt.get();
+        Artist artist = artistOpt.get();
+        event.getArtists().add(artist);
+        return eventRepository.save(event);
     }
 
     public List<Event> listAllEventsForArtist(Long artistId) {
