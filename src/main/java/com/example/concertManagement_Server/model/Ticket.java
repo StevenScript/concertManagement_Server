@@ -1,6 +1,7 @@
 package com.example.concertManagement_Server.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,9 +18,9 @@ public class Ticket {
 
     // Many tickets -> one event
     @ManyToOne
+    @JsonIgnoreProperties("tickets")
     @JoinColumn(name = "event_id")
     private Event event;
-
     private String seatNumber;
     private String ticketType; // VIP, GA, etc.
     private String buyerName;

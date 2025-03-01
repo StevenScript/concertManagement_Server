@@ -1,6 +1,7 @@
 package com.example.concertManagement_Server.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +27,7 @@ public class Event {
     // Many events -> one venue
     @ManyToOne
     @JoinColumn(name = "venue_id")
+    @JsonIgnoreProperties("events") // Prevent infinite recursion when serializing venues
     private Venue venue;
 
     // Many-to-many with Artist
@@ -35,5 +37,6 @@ public class Event {
             joinColumns = @JoinColumn(name = "event_id"),
             inverseJoinColumns = @JoinColumn(name = "artist_id")
     )
+    @JsonIgnoreProperties("events")
     private Set<Artist> artists = new HashSet<>();
 }

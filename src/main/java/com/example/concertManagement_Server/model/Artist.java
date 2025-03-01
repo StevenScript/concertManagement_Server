@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,5 +24,6 @@ public class Artist {
     private String homeCity;
 
     @ManyToMany(mappedBy = "artists")
+    @JsonIgnoreProperties("artists")
     private Set<Event> events = new HashSet<>();
 }
