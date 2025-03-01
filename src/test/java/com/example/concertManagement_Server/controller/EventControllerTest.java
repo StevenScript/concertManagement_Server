@@ -1,6 +1,5 @@
 package com.example.concertManagement_Server.controller;
 
-import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.service.EventService;
 import org.junit.jupiter.api.*;
@@ -10,6 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -25,7 +26,6 @@ public class EventControllerTest {
 
     @Test
     void testGetEvent_Found() {
-        // Suppose the service returns an event for ID=99
         Event mockEvent = new Event();
         mockEvent.setId(99L);
         mockEvent.setEventDate(LocalDate.of(2025, 5, 10));
@@ -33,7 +33,6 @@ public class EventControllerTest {
         when(eventService.getEventById(99L)).thenReturn(mockEvent);
 
         ResponseEntity<Event> response = eventController.getEvent(99L);
-        assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
         assertEquals(LocalDate.of(2025, 5, 10), response.getBody().getEventDate());
@@ -46,7 +45,6 @@ public class EventControllerTest {
         when(eventService.getEventById(999L)).thenReturn(null);
 
         ResponseEntity<Event> response = eventController.getEvent(999L);
-        assertNotNull(response);
         assertEquals(404, response.getStatusCodeValue());
         assertNull(response.getBody());
 
@@ -65,7 +63,6 @@ public class EventControllerTest {
         when(eventService.createEvent(newEvent)).thenReturn(savedEvent);
 
         ResponseEntity<Event> response = eventController.createEvent(newEvent);
-        assertNotNull(response);
         assertEquals(201, response.getStatusCodeValue());
         assertNotNull(response.getBody());
         assertEquals(10L, response.getBody().getId());
@@ -108,30 +105,45 @@ public class EventControllerTest {
 
     @Test
     void testAddArtistToEvent_Found() {
-        Artist newArtist = new Artist();
-        newArtist.setId(101L);
-
+        Long artistId = 101L;  // ✅ Use artist ID instead of an object
         Event updatedEvent = new Event();
         updatedEvent.setId(5L);
 
-        when(eventService.addArtistToEvent(5L, newArtist)).thenReturn(updatedEvent);
+        when(eventService.addArtistToEvent(5L, artistId)).thenReturn(updatedEvent);
 
-        ResponseEntity<Event> response = eventController.addArtistToEvent(5L, newArtist);
+        ResponseEntity<Event> response = eventController.addArtistToEvent(5L, artistId);
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
-        verify(eventService).addArtistToEvent(5L, newArtist);
+        verify(eventService).addArtistToEvent(5L, artistId);
     }
 
     @Test
     void testAddArtistToEvent_NotFound() {
-        Artist newArtist = new Artist();
-        newArtist.setId(999L);
+        Long artistId = 999L;
 
-        when(eventService.addArtistToEvent(999L, newArtist)).thenReturn(null);
+        when(eventService.addArtistToEvent(999L, artistId)).thenReturn(null);
 
-        ResponseEntity<Event> response = eventController.addArtistToEvent(999L, newArtist);
+        ResponseEntity<Event> response = eventController.addArtistToEvent(999L, artistId);
         assertEquals(404, response.getStatusCodeValue());
         assertNull(response.getBody());
-        verify(eventService).addArtistToEvent(999L, newArtist);
+        verify(eventService).addArtistToEvent(999L, artistId);
+    }
+
+    @Test
+    void testListAllEventsForArtist() {
+        Event mockEvent = new Event();
+        mockEvent.setId(1L);
+        mockEvent.setEventDate(LocalDate.of(2025, 5, 10));
+
+        when(eventService.listAllEventsForArtist(10L))
+                .thenReturn(Collections.singletonList(mockEvent));
+
+        ResponseEntity<List<Event>> response = eventController.getEventsByArtistId(10L);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(1, response.getBody().size());
+        assertEquals(LocalDate.of(2025, 5, 10), response.getBody().get(0).getEventDate());
+
+        verify(eventService).listAllEventsForArtist(10L);
     }
 }
+

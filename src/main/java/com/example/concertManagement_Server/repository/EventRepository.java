@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByEventDateAfter(LocalDate date);
+    List<Event> findByArtists_Id(Long artistId);
 
     @Query("SELECT e FROM Event e JOIN e.artists a WHERE a.id = :artistId")
     List<Event> findEventsByArtistId(Long artistId);

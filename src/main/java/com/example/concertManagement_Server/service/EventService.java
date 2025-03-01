@@ -3,6 +3,7 @@ package com.example.concertManagement_Server.service;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.repository.EventRepository;
+import com.example.concertManagement_Server.repository.ArtistRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,9 +14,11 @@ import java.util.List;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final ArtistRepository artistRepository;
 
-    public EventService(EventRepository eventRepository) {
+    public EventService(EventRepository eventRepository, ArtistRepository artistRepository) {
         this.eventRepository = eventRepository;
+        this.artistRepository = artistRepository;
     }
 
     public List<Event> getAllEvents() {
@@ -47,11 +50,22 @@ public class EventService {
         }).orElse(null);
     }
 
-    public Event addArtistToEvent(Long eventId, Artist artist) {
-        return eventRepository.findById(eventId).map(e -> {
-            e.getArtists().add(artist); // add to the set
-            return eventRepository.save(e);
-        }).orElse(null);
+    public List<Event> findEventsByArtistId(Long artistId) {
+        return eventRepository.findByArtists_Id(artistId);
+    }
+
+    public Event addArtistToEvent(Long eventId, Long artistId) {
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        Optional<Artist> artistOpt = artistRepository.findById(artistId);
+
+        if (eventOpt.isPresent() && artistOpt.isPresent()) {
+            Event event = eventOpt.get();
+            Artist artist = artistOpt.get();
+
+            event.getArtists().add(artist);
+            return eventRepository.save(event);
+        }
+        return null; // Return null if event or artist does not exist
     }
 
     public List<Event> listAllEventsForArtist(Long artistId) {

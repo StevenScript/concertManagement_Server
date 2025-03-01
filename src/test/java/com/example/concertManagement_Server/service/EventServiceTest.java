@@ -3,6 +3,7 @@ package com.example.concertManagement_Server.service;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.repository.EventRepository;
+import com.example.concertManagement_Server.repository.ArtistRepository;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -10,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +23,9 @@ public class EventServiceTest {
 
     @Mock
     private EventRepository eventRepository;
+
+    @Mock
+    private ArtistRepository artistRepository;
 
     @InjectMocks
     private EventService eventService;
@@ -104,31 +109,63 @@ public class EventServiceTest {
     }
 
     @Test
-    void testAddArtistToEvent() {
+    void testAddArtistToEvent_Success() {
         // Assume an event with ID=5
-        Event existing = new Event();
-        existing.setId(5L);
+        Event existingEvent = new Event();
+        existingEvent.setId(5L);
+        existingEvent.setArtists(new HashSet<>()); // ✅ Empty set of artists initially
 
-        // The event's "artists" Set is initially empty or has some members
-        // Attempt to add a new Artist
-
-        when(eventRepository.findById(5L)).thenReturn(Optional.of(existing));
-        when(eventRepository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
-
+        // Artist to add
         Artist newArtist = new Artist();
         newArtist.setId(100L);
         newArtist.setStageName("New Artist");
 
+        // Mocking repo methods
+        when(eventRepository.findById(5L)).thenReturn(Optional.of(existingEvent));
+        when(artistRepository.findById(100L)).thenReturn(Optional.of(newArtist)); // ✅ Mock artist retrieval
+        when(eventRepository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
+
         // Act
-        Event result = eventService.addArtistToEvent(5L, newArtist);
+        Event result = eventService.addArtistToEvent(5L, 100L);
 
         // Assert
         Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.getArtists().size());
-        Assertions.assertTrue(result.getArtists().contains(newArtist));
+        Assertions.assertTrue(result.getArtists().stream().anyMatch(a -> a.getId().equals(100L)));
+
+        // Verify interactions
+        verify(eventRepository).findById(5L);
+        verify(artistRepository).findById(100L); // ✅ Ensures artist lookup happens
+        verify(eventRepository).save(any(Event.class));
+    }
+
+    @Test
+    void testAddArtistToEvent_EventNotFound() {
+        when(eventRepository.findById(999L)).thenReturn(Optional.empty());
+
+        Event result = eventService.addArtistToEvent(999L, 100L);
+        Assertions.assertNull(result);
+
+        verify(eventRepository).findById(999L);
+        verify(artistRepository, never()).findById(anyLong());
+        verify(eventRepository, never()).save(any(Event.class));
+    }
+
+    @Test
+    void testAddArtistToEvent_ArtistNotFound() {
+        Event existingEvent = new Event();
+        existingEvent.setId(5L);
+        existingEvent.setArtists(new HashSet<>());
+
+        when(eventRepository.findById(5L)).thenReturn(Optional.of(existingEvent));
+        when(artistRepository.findById(999L)).thenReturn(Optional.empty()); // Artist not found
+
+        Event result = eventService.addArtistToEvent(5L, 999L);
+        Assertions.assertNull(result);
 
         verify(eventRepository).findById(5L);
-        verify(eventRepository).save(any(Event.class));
+        verify(artistRepository).findById(999L);
+        verify(eventRepository, never()).save(any(Event.class));
     }
 
     @Test
