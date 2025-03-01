@@ -16,6 +16,10 @@ public class ArtistService {
         this.artistRepository = artistRepository;
     }
 
+    public List<Artist> getAllArtists() {
+        return artistRepository.findAll();
+    }
+
     public Artist getArtistById(Long id) {
         Optional<Artist> optionalArtist = artistRepository.findById(id);
         return optionalArtist.orElse(null);

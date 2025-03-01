@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,6 +12,7 @@ import java.util.Set;
 @Data // Lombok - generates getters, setters, toString, equals, hashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = "events")
 public class Artist {
 
     @Id
@@ -23,5 +25,6 @@ public class Artist {
     private String homeCity;
 
     @ManyToMany(mappedBy = "artists")
+    @JsonIgnoreProperties("artists")
     private Set<Event> events = new HashSet<>();
 }
