@@ -23,6 +23,11 @@ public class EventController {
         return eventService.getAllEvents();
     }
 
+    @GetMapping("/upcoming")  // ✅ Correct endpoint
+    public List<Event> getUpcomingEvents() {
+        return eventService.findUpcomingEvents();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Event> getEvent(@PathVariable Long id) {
         Event event = eventService.getEventById(id);

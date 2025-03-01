@@ -5,6 +5,7 @@ import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.repository.EventRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.List;
 
@@ -24,6 +25,11 @@ public class EventService {
     public Event getEventById(Long id) {
         Optional<Event> optional = eventRepository.findById(id);
         return optional.orElse(null);
+    }
+
+    public List<Event> findUpcomingEvents() {
+        LocalDate today = LocalDate.now();
+        return eventRepository.findByEventDateAfter(today);
     }
 
     public Event createEvent(Event event) {
