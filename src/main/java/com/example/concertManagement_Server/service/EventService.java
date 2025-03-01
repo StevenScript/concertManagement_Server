@@ -17,6 +17,10 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
+    public List<Event> getAllEvents() {
+        return eventRepository.findAll();
+    }
+
     public Event getEventById(Long id) {
         Optional<Event> optional = eventRepository.findById(id);
         return optional.orElse(null);

@@ -22,6 +22,11 @@ public class ArtistController {
         this.eventService = eventService;
     }
 
+    @GetMapping
+    public List<Artist> getAllArtists() {
+        return artistService.getAllArtists();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Artist> getArtist(@PathVariable Long id) {
         Artist artist = artistService.getArtistById(id);
