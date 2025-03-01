@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,10 +19,11 @@ public class Venue {
     private Long id;
 
     private String name;
-    private String location; // Planning on City/Province
+    private String location; // City
     private Integer capacity;
 
-    // One venue has many events
+    // Event.java
     @OneToMany(mappedBy = "venue")
+    @JsonIgnoreProperties("venue") // Prevent infinite recursion when serializing events
     private List<Event> events = new ArrayList<>();
 }

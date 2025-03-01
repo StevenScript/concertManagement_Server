@@ -18,9 +18,14 @@ public class VenueController {
     private final ArtistService artistService;
 
     public VenueController(VenueService venueService, ArtistService artistService) {
-
         this.venueService = venueService;
         this.artistService = artistService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Venue>> listAllVenues() {
+        List<Venue> venues = venueService.listAllVenues();
+        return ResponseEntity.ok(venues);
     }
 
     @GetMapping("/{id}")

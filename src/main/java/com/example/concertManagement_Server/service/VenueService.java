@@ -4,6 +4,7 @@ import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.repository.VenueRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,6 +19,10 @@ public class VenueService {
     public Venue getVenueById(Long id) {
         Optional<Venue> optional = venueRepository.findById(id);
         return optional.orElse(null);
+    }
+
+    public List<Venue> listAllVenues() {
+        return venueRepository.findAll();
     }
 
     public Venue createVenue(Venue venue) {
