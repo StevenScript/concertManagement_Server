@@ -16,19 +16,23 @@ public class TicketService {
         this.ticketRepository = ticketRepository;
     }
 
+    // Retrieves all tickets from the database
     public List<Ticket> getAllTickets() {
         return ticketRepository.findAll();
     }
 
+    // Retrieves a ticket by its ID, or returns null if not found
     public Ticket getTicketById(Long id) {
         Optional<Ticket> optional = ticketRepository.findById(id);
         return optional.orElse(null);
     }
 
+    // Creates and saves a new ticket
     public Ticket createTicket(Ticket ticket) {
         return ticketRepository.save(ticket);
     }
 
+    // Updates an existing ticket if found
     public Ticket updateTicket(Long id, Ticket updatedData) {
         return ticketRepository.findById(id).map(t -> {
             t.setBuyerName(updatedData.getBuyerName());

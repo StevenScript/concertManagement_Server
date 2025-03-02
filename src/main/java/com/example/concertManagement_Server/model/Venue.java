@@ -16,13 +16,13 @@ public class Venue {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Primary key for the venue
 
     private String name;
-    private String location; // City
+    private String location; // City where the venue is located
     private Integer capacity;
 
-    // Event.java
+    // One venue can have multiple events
     @OneToMany(mappedBy = "venue")
     @JsonIgnoreProperties("venue") // Prevent infinite recursion when serializing events
     private List<Event> events = new ArrayList<>();

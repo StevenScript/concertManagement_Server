@@ -24,8 +24,6 @@ public class TicketRepositoryTest {
 
     @Test
     void testSaveAndFindTicket() {
-        // 1. Event to associate a Ticket with.
-        //    That event, in turn, needs a Venue.
         Venue venue = new Venue();
         venue.setName("Test Venue");
         venue.setLocation("Test City");
@@ -39,20 +37,20 @@ public class TicketRepositoryTest {
         event.setVenue(savedVenue);
         Event savedEvent = eventRepository.save(event);
 
-        // 2. Create a Ticket object referencing the event
+        // Create a Ticket object referencing the event
         Ticket ticket = new Ticket();
         ticket.setEvent(savedEvent);
         ticket.setSeatNumber("A12");
         ticket.setTicketType("VIP");
         ticket.setBuyerName("John Doe");
 
-        // 3. Save the ticket using the ticketRepository
+        // Save the ticket using the ticketRepository
         Ticket savedTicket = ticketRepository.save(ticket);
 
-        // 4. Verify the ticket got an ID
+        // Verify the ticket got an ID
         Assertions.assertNotNull(savedTicket.getId(), "Ticket should have an auto-generated ID");
 
-        // 5. Retrieve by ID
+        // Retrieve by ID
         Ticket foundTicket = ticketRepository.findById(savedTicket.getId()).orElse(null);
         Assertions.assertNotNull(foundTicket, "The ticket should be found in the database");
         Assertions.assertEquals("A12", foundTicket.getSeatNumber());

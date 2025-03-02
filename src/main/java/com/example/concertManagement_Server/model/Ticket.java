@@ -14,11 +14,11 @@ public class Ticket {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Primary key for the ticket
 
     // Many tickets -> one event
     @ManyToOne
-    @JsonIgnoreProperties("tickets")
+    @JsonIgnoreProperties("tickets") // Prevents infinite recursion when serializing events
     @JoinColumn(name = "event_id")
     private Event event;
     private String seatNumber;

@@ -110,10 +110,9 @@ public class EventServiceTest {
 
     @Test
     void testAddArtistToEvent_Success() {
-        // Assume an event with ID=5
         Event existingEvent = new Event();
         existingEvent.setId(5L);
-        existingEvent.setArtists(new HashSet<>()); // ✅ Empty set of artists initially
+        existingEvent.setArtists(new HashSet<>());
 
         // Artist to add
         Artist newArtist = new Artist();
@@ -122,20 +121,18 @@ public class EventServiceTest {
 
         // Mocking repo methods
         when(eventRepository.findById(5L)).thenReturn(Optional.of(existingEvent));
-        when(artistRepository.findById(100L)).thenReturn(Optional.of(newArtist)); // ✅ Mock artist retrieval
+        when(artistRepository.findById(100L)).thenReturn(Optional.of(newArtist));
         when(eventRepository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // Act
         Event result = eventService.addArtistToEvent(5L, 100L);
 
-        // Assert
         Assertions.assertNotNull(result);
         Assertions.assertEquals(1, result.getArtists().size());
         Assertions.assertTrue(result.getArtists().stream().anyMatch(a -> a.getId().equals(100L)));
 
         // Verify interactions
         verify(eventRepository).findById(5L);
-        verify(artistRepository).findById(100L); // ✅ Ensures artist lookup happens
+        verify(artistRepository).findById(100L);
         verify(eventRepository).save(any(Event.class));
     }
 
@@ -158,7 +155,7 @@ public class EventServiceTest {
         existingEvent.setArtists(new HashSet<>());
 
         when(eventRepository.findById(5L)).thenReturn(Optional.of(existingEvent));
-        when(artistRepository.findById(999L)).thenReturn(Optional.empty()); // Artist not found
+        when(artistRepository.findById(999L)).thenReturn(Optional.empty());
 
         Event result = eventService.addArtistToEvent(5L, 999L);
         Assertions.assertNull(result);
@@ -170,7 +167,6 @@ public class EventServiceTest {
 
     @Test
     void testListAllEventsForArtist() {
-        // Repository returns one event
         Event mockEvent = new Event();
         mockEvent.setId(1L);
         mockEvent.setEventDate(LocalDate.of(2025, 5, 10));

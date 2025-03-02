@@ -18,7 +18,7 @@ public class TicketControllerTest {
     private TicketService ticketService;
 
     @InjectMocks
-    private TicketController ticketController; // DOES NOT EXIST
+    private TicketController ticketController;
 
     @Test
     void testGetTicket_Found() {

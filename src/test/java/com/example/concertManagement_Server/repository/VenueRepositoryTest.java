@@ -13,19 +13,19 @@ public class VenueRepositoryTest {
 
     @Test
     void testSaveAndFindVenue() {
-        // 1. Create a new Venue object
+        // Create a new Venue object
         Venue venue = new Venue();
         venue.setName("Test Venue");
         venue.setLocation("Test Location");
         venue.setCapacity(500);
 
-        // 2. Save it using the repository
+        // Save it using the repository
         Venue savedVenue = venueRepository.save(venue);
 
-        // 3. Verify it got an ID
+        // Verify it got an ID
         Assertions.assertNotNull(savedVenue.getId());
 
-        // 4. Retrieve it by the new ID
+        // Retrieve it by the new ID
         Venue foundVenue = venueRepository.findById(savedVenue.getId()).orElse(null);
         Assertions.assertNotNull(foundVenue, "Should retrieve the saved venue");
         Assertions.assertEquals("Test Venue", foundVenue.getName());

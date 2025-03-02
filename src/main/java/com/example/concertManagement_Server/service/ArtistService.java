@@ -11,25 +11,29 @@ import java.util.Optional;
 public class ArtistService {
     private final ArtistRepository artistRepository;
 
-    // Constructor injection
+    // Constructor injection for repository dependency
     public ArtistService(ArtistRepository artistRepository) {
         this.artistRepository = artistRepository;
     }
 
+    // Retrieves all artists from the database
     public List<Artist> getAllArtists() {
         return artistRepository.findAll();
     }
 
+    // Retrieves an artist by ID, or returns null if not found
     public Artist getArtistById(Long id) {
         Optional<Artist> optionalArtist = artistRepository.findById(id);
         return optionalArtist.orElse(null);
     }
 
+    // Creates and saves a new artist record
     public Artist createArtist(Artist artist) {
         // Potential business logic, e.g., validate fields
         return artistRepository.save(artist);
     }
 
+    // Updates an existing artist's details if found
     public Artist updateArtist(Long id, Artist updatedData) {
         return artistRepository.findById(id).map(artist -> {
             // We found an Artist, apply changes
@@ -41,6 +45,7 @@ public class ArtistService {
         }).orElse(null);
     }
 
+    // Retrieves all artists associated with a specific venue
     public List<Artist> listAllArtistsForVenue(Long venueId) {
         return artistRepository.findArtistsByVenueId(venueId);
     }

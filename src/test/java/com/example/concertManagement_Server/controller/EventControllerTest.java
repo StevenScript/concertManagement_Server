@@ -19,11 +19,12 @@ import static org.mockito.Mockito.*;
 public class EventControllerTest {
 
     @Mock
-    private EventService eventService; // Mock the service
+    private EventService eventService;
 
     @InjectMocks
     private EventController eventController;
 
+    // Test retrieving an event that exists
     @Test
     void testGetEvent_Found() {
         Event mockEvent = new Event();
@@ -40,6 +41,7 @@ public class EventControllerTest {
         verify(eventService).getEventById(99L);
     }
 
+    // Test retrieving an event that does not exist
     @Test
     void testGetEvent_NotFound() {
         when(eventService.getEventById(999L)).thenReturn(null);
@@ -51,6 +53,7 @@ public class EventControllerTest {
         verify(eventService).getEventById(999L);
     }
 
+    // Test retrieving an event that does not exist
     @Test
     void testCreateEvent() {
         Event newEvent = new Event();
@@ -70,6 +73,7 @@ public class EventControllerTest {
         verify(eventService).createEvent(newEvent);
     }
 
+    // Test updating an existing event
     @Test
     void testUpdateEvent_Found() {
         Event updatedData = new Event();
@@ -89,6 +93,7 @@ public class EventControllerTest {
         verify(eventService).updateEvent(5L, updatedData);
     }
 
+    // Test updating a non-existent event
     @Test
     void testUpdateEvent_NotFound() {
         Event updatedData = new Event();
@@ -103,6 +108,7 @@ public class EventControllerTest {
         verify(eventService).updateEvent(999L, updatedData);
     }
 
+    // Test adding an artist to an existing event
     @Test
     void testAddArtistToEvent_Found() {
         Long artistId = 101L;  // ✅ Use artist ID instead of an object
@@ -117,6 +123,7 @@ public class EventControllerTest {
         verify(eventService).addArtistToEvent(5L, artistId);
     }
 
+    // Test adding an artist to a non-existent event
     @Test
     void testAddArtistToEvent_NotFound() {
         Long artistId = 999L;
@@ -129,6 +136,7 @@ public class EventControllerTest {
         verify(eventService).addArtistToEvent(999L, artistId);
     }
 
+    // Test listing all events for an artist
     @Test
     void testListAllEventsForArtist() {
         Event mockEvent = new Event();

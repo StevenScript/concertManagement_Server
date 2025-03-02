@@ -16,19 +16,23 @@ public class VenueService {
         this.venueRepository = venueRepository;
     }
 
+    // Retrieves a venue by ID, or returns null if not found
     public Venue getVenueById(Long id) {
         Optional<Venue> optional = venueRepository.findById(id);
         return optional.orElse(null);
     }
 
+    // Retrieves all venues from the database
     public List<Venue> listAllVenues() {
         return venueRepository.findAll();
     }
 
+    // Creates and saves a new venue
     public Venue createVenue(Venue venue) {
         return venueRepository.save(venue);
     }
 
+    // Updates an existing venue if found
     public Venue updateVenue(Long id, Venue updatedData) {
         return venueRepository.findById(id).map(venue -> {
             venue.setName(updatedData.getName());

@@ -29,16 +29,16 @@ public class ArtistControllerTest {
     @InjectMocks
     private ArtistController artistController;
 
+    // Tests retrieval of an existing artist
     @Test
     void testGetArtist_Found() {
-        // Service returns an Artist for ID=1
         Artist mockArtist = new Artist();
         mockArtist.setId(1L);
         mockArtist.setStageName("Mocked Artist");
 
         when(artistService.getArtistById(1L)).thenReturn(mockArtist);
 
-        // Controller method to test:
+        // Tests retrieval of a non-existing artist
         ResponseEntity<Artist> response = artistController.getArtist(1L);
 
         assertNotNull(response, "ResponseEntity should not be null");
@@ -49,6 +49,7 @@ public class ArtistControllerTest {
         verify(artistService).getArtistById(1L);
     }
 
+    // Tests retrieval of a non-existing artist
     @Test
     void testGetArtist_NotFound() {
         when(artistService.getArtistById(999L)).thenReturn(null);
@@ -61,6 +62,7 @@ public class ArtistControllerTest {
         verify(artistService).getArtistById(999L);
     }
 
+    // Tests creating a new artist
     @Test
     void testCreateArtist() {
         Artist newArtist = new Artist();
@@ -82,6 +84,7 @@ public class ArtistControllerTest {
         verify(artistService).createArtist(newArtist);
     }
 
+    // Tests updating an existing artist
     @Test
     void testUpdateArtist() {
         Artist existing = new Artist();
@@ -106,6 +109,7 @@ public class ArtistControllerTest {
         verify(artistService).updateArtist(2L, updatedData);
     }
 
+    // Tests updating a non-existing artist
     @Test
     void testUpdateArtist_NotFound() {
         Artist updatedData = new Artist();
@@ -121,6 +125,7 @@ public class ArtistControllerTest {
         verify(artistService).updateArtist(999L, updatedData);
     }
 
+    // Tests retrieving events for a given artist
     @Test
     void testGetEventsForArtist() {
         Event mockEvent = new Event();

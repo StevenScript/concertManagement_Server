@@ -28,7 +28,7 @@ public class Event {
     // Many events -> one venue
     @ManyToOne
     @JoinColumn(name = "venue_id")
-    @JsonIgnoreProperties("events") // Prevent infinite recursion when serializing venues
+    @JsonIgnoreProperties("events")
     private Venue venue;
 
     // Many-to-many with Artist

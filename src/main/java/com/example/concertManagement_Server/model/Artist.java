@@ -17,7 +17,7 @@ public class Artist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Primary key for the artist
 
     private String stageName;
     private String genre;
@@ -25,6 +25,6 @@ public class Artist {
     private String homeCity;
 
     @ManyToMany(mappedBy = "artists")
-    @JsonIgnoreProperties("artists")
+    @JsonIgnoreProperties("artists") // Prevents circular references in JSON responses
     private Set<Event> events = new HashSet<>();
 }

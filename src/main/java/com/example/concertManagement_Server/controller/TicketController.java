@@ -13,15 +13,18 @@ public class TicketController {
 
     private final TicketService ticketService;
 
+    // Constructor-based dependency injection for the ticket service
     public TicketController(TicketService ticketService) {
         this.ticketService = ticketService;
     }
 
+    // Retrieves all tickets from the database
     @GetMapping
     public List<Ticket> getAllTickets() {
         return ticketService.getAllTickets();
     }
 
+    // Retrieves a ticket by its ID
     @GetMapping("/{id}")
     public ResponseEntity<Ticket> getTicket(@PathVariable Long id) {
         Ticket t = ticketService.getTicketById(id);
@@ -31,12 +34,14 @@ public class TicketController {
         return ResponseEntity.ok(t);
     }
 
+    // Creates a new ticket entry
     @PostMapping
     public ResponseEntity<Ticket> createTicket(@RequestBody Ticket ticket) {
         Ticket created = ticketService.createTicket(ticket);
         return ResponseEntity.status(201).body(created);
     }
 
+    // Updates an existing ticket by ID
     @PutMapping("/{id}")
     public ResponseEntity<Ticket> updateTicket(@PathVariable Long id, @RequestBody Ticket ticketData) {
         Ticket updated = ticketService.updateTicket(id, ticketData);

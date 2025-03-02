@@ -18,14 +18,14 @@ public class EventRepositoryTest {
     private EventRepository eventRepository;
 
     @Autowired
-    private VenueRepository venueRepository; //  Set a Venue for the Event
+    private VenueRepository venueRepository;
 
     @Autowired
     private ArtistRepository artistRepository;
 
     @Test
     void testSaveAndFindEvent() {
-        // 1. Create a Venue
+        // Create a Venue
         Venue venue = new Venue();
         venue.setName("Sample Venue");
         venue.setLocation("Sample City");
@@ -33,20 +33,20 @@ public class EventRepositoryTest {
 
         Venue savedVenue = venueRepository.save(venue);
 
-        // 2. Create a new Event object
+        // Create a new Event object
         Event event = new Event();
         event.setEventDate(LocalDate.of(2025, 5, 10));
         event.setTicketPrice(59.99);
         event.setAvailableTickets(500);
         event.setVenue(savedVenue); // link to our savedVenue
 
-        // 3. Save it using the repository
+        // Save it using the repository
         Event savedEvent = eventRepository.save(event);
 
-        // 4. Verify ID is assigned
+        // Verify ID is assigned
         Assertions.assertNotNull(savedEvent.getId(), "Event should have an auto-generated ID");
 
-        // 5. Retrieve it by ID
+        // Retrieve it by ID
         Event foundEvent = eventRepository.findById(savedEvent.getId()).orElse(null);
         Assertions.assertNotNull(foundEvent, "The event should be found in the database");
         Assertions.assertEquals(LocalDate.of(2025, 5, 10), foundEvent.getEventDate());
@@ -57,23 +57,20 @@ public class EventRepositoryTest {
 
     @Test
     void testFindEventsByArtistId() {
-        // Step 1: create an Artist
+        // Create an Artist
         Artist artist = new Artist();
         artist.setStageName("Test Artist");
         artist = artistRepository.save(artist);
 
-        // Step 2: create an Event referencing that artist
+        // Create an Event referencing that artist
         Event event = new Event();
         event.setEventDate(LocalDate.of(2025, 5, 10));
         event.setTicketPrice(50.0);
         eventRepository.save(event);
-
-        // we have a many-to-many link: event.getArtists().add(artist)
-        // but let's do minimal for demonstration:
         event.getArtists().add(artist);
         eventRepository.save(event);
 
-        // Step 3: call the method we want to test
+        // Call the method we want to test
         List<Event> foundEvents = eventRepository.findEventsByArtistId(artist.getId());
         Assertions.assertEquals(1, foundEvents.size());
         Assertions.assertEquals(LocalDate.of(2025, 5, 10), foundEvents.get(0).getEventDate());

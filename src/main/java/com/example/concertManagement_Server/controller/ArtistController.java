@@ -17,16 +17,19 @@ public class ArtistController {
     private final ArtistService artistService;
     private final EventService eventService;
 
+    // Constructor-based dependency injection for required services
     public ArtistController(ArtistService artistService, EventService eventService) {
         this.artistService = artistService;
         this.eventService = eventService;
     }
 
+    // Retrieves all artists from the database
     @GetMapping
     public List<Artist> getAllArtists() {
         return artistService.getAllArtists();
     }
 
+    // Retrieves a specific artist by ID
     @GetMapping("/{id}")
     public ResponseEntity<Artist> getArtist(@PathVariable Long id) {
         Artist artist = artistService.getArtistById(id);
@@ -36,12 +39,14 @@ public class ArtistController {
         return ResponseEntity.ok(artist);
     }
 
+    // Creates a new artist entry
     @PostMapping
     public ResponseEntity<Artist> createArtist(@RequestBody Artist artist) {
         Artist created = artistService.createArtist(artist);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
+    // Updates an existing artist's details by ID
     @PutMapping("/{id}")
     public ResponseEntity<Artist> updateArtist(@PathVariable Long id, @RequestBody Artist artistData) {
         Artist updated = artistService.updateArtist(id, artistData);
@@ -51,6 +56,7 @@ public class ArtistController {
         return ResponseEntity.ok(updated);
     }
 
+    // Retrieves all events associated with a specific artist by ID
     @GetMapping("/{id}/events")
     public ResponseEntity<List<Event>> getEventsForArtist(@PathVariable Long id) {
         List<Event> events = eventService.listAllEventsForArtist(id);
