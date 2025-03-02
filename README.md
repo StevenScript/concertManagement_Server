@@ -2,39 +2,86 @@
 ## Author - Steven Norris
 ## Date - February 28th, 2025 
 
-### Entities
-- **Artist**
-- **Venue**
-- **Event**
-- **Ticket**
+# Concert Management Server
 
-### Relationships
-- **Artist ↔ Event**: Many-to-Many
-- **Venue ↔ Event**: One-to-Many
-- **Event ↔ Ticket**: One-to-Many
+## Table of Contents
 
-### Features
-- A **REST API** using **Spring Boot** for CRUD operations and custom queries (e.g., *"list events for an artist"*).
-- A separate **Java console client** that communicates via HTTP with the API.
+1. [Introduction](#introduction)
+2. [Features](#features)
+3. [Architecture](#architecture)
+4. [Data Model](#data-model)
+5. [API Endpoints](#api-endpoints)
+    - [Artist Endpoints](#artist-endpoints)
+    - [Venue Endpoints](#venue-endpoints)
+    - [Event Endpoints](#event-endpoints)
+    - [Ticket Endpoints](#ticket-endpoints)
+6. [Setup and Installation](#setup-and-installation)
+    - [Prerequisites](#prerequisites)
+    - [Steps](#steps)
+7. [Testing](#testing)
+8. [Development Workflow](#development-workflow)
+9. [Contributing](#contributing)
+10. [License](#license)
 
-### Workflow
-- **Trunk-based development** with feature branches and pull requests.
-- **Test-driven Development** with testing and github workplows to ensure stable code and catching bugs
+## Introduction
 
-## Project Setup
+The Concert Management Server is a Java-based application developed to manage concerts, artists, venues, events, and ticketing. Built using Spring Boot, it exposes a RESTful API over HTTP and interacts with a MySQL relational database to perform various operations related to concert management.
 
-### Dependencies (via Spring Initializr)
-- **Spring Web**
-- **Spring Data JPA**
-- **MySQL Driver**
-- **Lombok**
-- **Spring Boot DevTools**
+## Features
 
-## Planned Steps
-1. **Project Setup and GitHub Initialization**
-2. **Define the Data Model**
-3. **Create Repository Interfaces**
-4. **Develop REST Controllers**
-5. **Test API via Postman**
+- **CRUD Operations**: Manage artists, venues, events, and tickets through standard Create, Read, Update, and Delete operations.
+- **Custom Queries**: Retrieve specific information such as events for a particular artist, venues hosting certain events, and more.
+- **Client Integration**: Designed to work seamlessly with a separate Java console client that communicates via HTTP with the API.
 
----
+## Architecture
+
+The application follows a layered architecture:
+
+1. **Controller Layer**: Handles HTTP requests and responses.
+2. **Service Layer**: Contains business logic and interacts with the repository layer.
+3. **Repository Layer**: Interfaces with the MySQL database using Spring Data JPA.
+
+## Data Model
+
+The primary entities and their relationships are as follows:
+
+- **Artist**: Represents performers and has a many-to-many relationship with events.
+- **Venue**: Represents locations where events are held and has a one-to-many relationship with events.
+- **Event**: Represents concerts or performances and has one-to-many relationships with tickets.
+- **Ticket**: Represents tickets for events.
+
+## API Endpoints
+
+The REST API provides the following endpoints:
+
+### Artist Endpoints
+
+- `GET /artists`: Retrieve a list of all artists.
+- `POST /artists`: Create a new artist.
+- `GET /artists/{id}`: Retrieve details of a specific artist by ID.
+- `PUT /artists/{id}`: Update an existing artist by ID.
+- `DELETE /artists/{id}`: Delete an artist by ID.
+
+### Venue Endpoints
+
+- `GET /venues`: Retrieve a list of all venues.
+- `POST /venues`: Create a new venue.
+- `GET /venues/{id}`: Retrieve details of a specific venue by ID.
+- `PUT /venues/{id}`: Update an existing venue by ID.
+- `DELETE /venues/{id}`: Delete a venue by ID.
+
+### Event Endpoints
+
+- `GET /events`: Retrieve a list of all events.
+- `POST /events`: Create a new event.
+- `GET /events/{id}`: Retrieve details of a specific event by ID.
+- `PUT /events/{id}`: Update an existing event by ID.
+- `DELETE /events/{id}`: Delete an event by ID.
+
+### Ticket Endpoints
+
+- `GET /tickets`: Retrieve a list of all tickets.
+- `POST /tickets`: Create a new ticket.
+- `GET /tickets/{id}`: Retrieve details of a specific ticket by ID.
+- `PUT /tickets/{id}`: Update an existing ticket by ID.
+- `DELETE /tickets/{id}`: Delete a ticket by ID.
