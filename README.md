@@ -53,7 +53,7 @@ The REST API provides the following endpoints:
 - `POST /artists`: Create a new artist.
 - `GET /artists/{id}`: Retrieve details of a specific artist by ID.
 - `PUT /artists/{id}`: Update an existing artist by ID.
-- `DELETE /artists/{id}`: Delete an artist by ID.
+- `GET /artists/{id}/events`: Retrieve all events associated with a specific artist.
 
 ### Venue Endpoints
 
@@ -61,7 +61,7 @@ The REST API provides the following endpoints:
 - `POST /venues`: Create a new venue.
 - `GET /venues/{id}`: Retrieve details of a specific venue by ID.
 - `PUT /venues/{id}`: Update an existing venue by ID.
-- `DELETE /venues/{id}`: Delete a venue by ID.
+- `GET /venues/{id}/artists`: Retrieve all artists associated with a specific venue.
 
 ### Event Endpoints
 
@@ -69,7 +69,9 @@ The REST API provides the following endpoints:
 - `POST /events`: Create a new event.
 - `GET /events/{id}`: Retrieve details of a specific event by ID.
 - `PUT /events/{id}`: Update an existing event by ID.
-- `DELETE /events/{id}`: Delete an event by ID.
+- `GET /events/upcoming`: Retrieve a list of upcoming events.
+- `GET /events/artist/{artistId}`: Retrieve all events associated with a specific artist.
+- `POST /events/{eventId}/artists/{artistId}`: Add an artist to an event.
 
 ### Ticket Endpoints
 
@@ -77,4 +79,3 @@ The REST API provides the following endpoints:
 - `POST /tickets`: Create a new ticket.
 - `GET /tickets/{id}`: Retrieve details of a specific ticket by ID.
 - `PUT /tickets/{id}`: Update an existing ticket by ID.
-- `DELETE /tickets/{id}`: Delete a ticket by ID.
