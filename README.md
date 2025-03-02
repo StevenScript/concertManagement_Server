@@ -15,13 +15,6 @@
     - [Venue Endpoints](#venue-endpoints)
     - [Event Endpoints](#event-endpoints)
     - [Ticket Endpoints](#ticket-endpoints)
-6. [Setup and Installation](#setup-and-installation)
-    - [Prerequisites](#prerequisites)
-    - [Steps](#steps)
-7. [Testing](#testing)
-8. [Development Workflow](#development-workflow)
-9. [Contributing](#contributing)
-10. [License](#license)
 
 ## Introduction
 
