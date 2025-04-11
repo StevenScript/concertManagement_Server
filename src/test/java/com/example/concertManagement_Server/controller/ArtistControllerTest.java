@@ -142,4 +142,23 @@ public class ArtistControllerTest {
 
         verify(eventService).listAllEventsForArtist(5L);
     }
+
+    @Test
+    void testGetTicketCountForArtist() {
+        // Define a sample artist ID
+        Long artistId = 3L;
+
+        // Assume that across all events for this artist the total ticket count is 250
+        when(artistService.getTicketCountForArtist(artistId)).thenReturn(250L);
+
+        // Call the endpoint in the ArtistController
+        ResponseEntity<Long> response = artistController.getTicketCountForArtist(artistId);
+
+        // Verify the response status and body
+        assertEquals(200, response.getStatusCodeValue(), "Expected HTTP status 200 OK.");
+        assertEquals(250L, response.getBody(), "The ticket count should be 250 as mocked.");
+
+        // Verify that the ArtistService method was called with the correct artist ID
+        verify(artistService).getTicketCountForArtist(artistId);
+    }
 }

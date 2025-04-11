@@ -62,4 +62,10 @@ public class ArtistController {
         List<Event> events = eventService.listAllEventsForArtist(id);
         return ResponseEntity.ok(events);
     }
+
+    @GetMapping("/{artistId}/ticket-count")
+    public ResponseEntity<Long> getTicketCountForArtist(@PathVariable Long artistId) {
+        Long count = artistService.getTicketCountForArtist(artistId);
+        return ResponseEntity.ok(count);
+    }
 }

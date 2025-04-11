@@ -2,6 +2,9 @@ package com.example.concertManagement_Server.service;
 
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.repository.ArtistRepository;
+import com.example.concertManagement_Server.model.Event;
+import com.example.concertManagement_Server.repository.EventRepository;
+import com.example.concertManagement_Server.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,10 +13,16 @@ import java.util.Optional;
 @Service
 public class ArtistService {
     private final ArtistRepository artistRepository;
+    private final EventRepository eventRepository;
+    private final TicketRepository ticketRepository;
 
     // Constructor injection for repository dependency
-    public ArtistService(ArtistRepository artistRepository) {
+    public ArtistService(ArtistRepository artistRepository,
+                         EventRepository eventRepository,
+                         TicketRepository ticketRepository) {
         this.artistRepository = artistRepository;
+        this.eventRepository = eventRepository;
+        this.ticketRepository = ticketRepository;
     }
 
     // Retrieves all artists from the database
@@ -44,6 +53,20 @@ public class ArtistService {
             return artistRepository.save(artist);
         }).orElse(null);
     }
+
+    public Long getTicketCountForArtist(Long artistId) {
+        // Retrieve all events for the given artist using a custom repository method
+        List<Event> events = eventRepository.findEventsByArtistId(artistId);
+
+        long totalTickets = 0;
+        // For each event, count the tickets using the ticket repository
+        for (Event event : events) {
+            totalTickets += ticketRepository.countByEventId(event.getId());
+        }
+
+        return totalTickets;
+    }
+
 
     // Retrieves all artists associated with a specific venue
     public List<Artist> listAllArtistsForVenue(Long venueId) {
