@@ -2,6 +2,7 @@ package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
+import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.service.ArtistService;
 import com.example.concertManagement_Server.service.EventService;
 import org.junit.jupiter.api.*;
@@ -160,5 +161,34 @@ public class ArtistControllerTest {
 
         // Verify that the ArtistService method was called with the correct artist ID
         verify(artistService).getTicketCountForArtist(artistId);
+    }
+
+    @Test
+    void testGetVenuesForArtist() {
+        // Define a sample artist ID for testing
+        Long artistId = 3L;
+
+        // Create a sample Venue object
+        Venue venue = new Venue();
+        venue.setId(200L);
+        venue.setName("Main Concert Hall");
+
+        // Create a list containing the sample venue
+        List<Venue> venues = Collections.singletonList(venue);
+
+        // Mock the ArtistService behavior
+        when(artistService.getVenuesForArtist(artistId)).thenReturn(venues);
+
+        // Call the endpoint in the ArtistController
+        ResponseEntity<List<Venue>> response = artistController.getVenuesForArtist(artistId);
+
+        // Verify response status and content
+        assertEquals(200, response.getStatusCodeValue(), "Expected HTTP status 200 OK.");
+        assertNotNull(response.getBody(), "Response body should not be null.");
+        assertEquals(1, response.getBody().size(), "Expected one venue in the list.");
+        assertEquals(200L, response.getBody().get(0).getId(), "Venue ID should match the test venue.");
+
+        // Verify that the getVenuesForArtist service method was invoked with the correct artist ID
+        verify(artistService).getVenuesForArtist(artistId);
     }
 }

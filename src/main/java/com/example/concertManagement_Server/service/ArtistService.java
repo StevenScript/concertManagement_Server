@@ -1,11 +1,13 @@
 package com.example.concertManagement_Server.service;
 
 import com.example.concertManagement_Server.model.Artist;
-import com.example.concertManagement_Server.repository.ArtistRepository;
+import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.model.Event;
+import com.example.concertManagement_Server.repository.ArtistRepository;
 import com.example.concertManagement_Server.repository.EventRepository;
 import com.example.concertManagement_Server.repository.TicketRepository;
 import org.springframework.stereotype.Service;
+import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +67,18 @@ public class ArtistService {
         }
 
         return totalTickets;
+    }
+
+    public List<Venue> getVenuesForArtist(Long artistId) {
+        // Retrieve all events where the artist is performing using a repository method
+        List<Event> events = eventRepository.findEventsByArtistId(artistId);
+
+        // Extract the venues from these events, filter to get distinct entries
+        return events.stream()
+                .map(Event::getVenue)
+                .filter(venue -> venue != null)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
 
