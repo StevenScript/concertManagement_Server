@@ -20,4 +20,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("SELECT e FROM Event e JOIN e.artists a WHERE a.id = :artistId")
     List<Event> findEventsByArtistId(Long artistId);
 
+    List<Event> findByVenueId(Long venueId);
+
 }

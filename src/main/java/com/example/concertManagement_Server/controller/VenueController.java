@@ -1,6 +1,7 @@
 package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.model.Artist;
+import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.service.ArtistService;
 import com.example.concertManagement_Server.service.VenueService;
@@ -62,5 +63,11 @@ public class VenueController {
     public ResponseEntity<List<Artist>> getArtistsForVenue(@PathVariable Long id) {
         List<Artist> artists = artistService.listAllArtistsForVenue(id);
         return ResponseEntity.ok(artists);
+    }
+
+    @GetMapping("/{id}/upcoming-events")
+    public ResponseEntity<List<Event>> getUpcomingEventsForVenue(@PathVariable Long id) {
+        List<Event> events = venueService.findUpcomingEventsForVenue(id);
+        return ResponseEntity.ok(events);
     }
 }

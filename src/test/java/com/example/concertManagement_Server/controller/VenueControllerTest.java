@@ -1,6 +1,7 @@
 package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.model.Artist;
+import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.service.ArtistService;
 import com.example.concertManagement_Server.service.VenueService;
@@ -10,6 +11,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
@@ -117,5 +119,29 @@ public class VenueControllerTest {
         assertEquals(100L, response.getBody().get(0).getId());
 
         verify(artistService).listAllArtistsForVenue(5L);
+    }
+
+    @Test
+    void testGetUpcomingEventsForVenue() {
+        // Prepare a venue ID and a list of upcoming events
+        Long venueId = 1L;
+        Event upcomingEvent = new Event();
+        upcomingEvent.setId(101L);
+        upcomingEvent.setEventDate(LocalDate.now().plusDays(5));
+        List<Event> upcomingEvents = Collections.singletonList(upcomingEvent);
+
+        // Mock the service call
+        when(venueService.findUpcomingEventsForVenue(venueId)).thenReturn(upcomingEvents);
+
+        // Call your new endpoint
+        ResponseEntity<List<Event>> response = venueController.getUpcomingEventsForVenue(venueId);
+
+        // Assertions
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        assertEquals(101L, response.getBody().get(0).getId());
+
+        verify(venueService).findUpcomingEventsForVenue(venueId);
     }
 }
