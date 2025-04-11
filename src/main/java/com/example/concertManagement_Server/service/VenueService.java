@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.repository.EventRepository;
@@ -25,8 +26,8 @@ public class VenueService {
 
     // Retrieves a venue by ID, or returns null if not found
     public Venue getVenueById(Long id) {
-        Optional<Venue> optional = venueRepository.findById(id);
-        return optional.orElse(null);
+        return venueRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venue with id " + id + " not found"));
     }
 
     // Retrieves all venues from the database
@@ -46,7 +47,7 @@ public class VenueService {
             venue.setLocation(updatedData.getLocation());
             venue.setCapacity(updatedData.getCapacity());
             return venueRepository.save(venue);
-        }).orElse(null);
+        }).orElseThrow(() -> new ResourceNotFoundException("Venue with id " + id + " not found"));
     }
 
     public List<Event> findUpcomingEventsForVenue(Long venueId) {

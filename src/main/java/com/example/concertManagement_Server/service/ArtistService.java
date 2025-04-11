@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.model.Event;
@@ -35,7 +36,7 @@ public class ArtistService {
     // Retrieves an artist by ID, or returns null if not found
     public Artist getArtistById(Long id) {
         Optional<Artist> optionalArtist = artistRepository.findById(id);
-        return optionalArtist.orElse(null);
+        return optionalArtist.orElseThrow(() -> new ResourceNotFoundException("Artist with id " + id + " not found"));
     }
 
     // Creates and saves a new artist record
@@ -53,7 +54,7 @@ public class ArtistService {
             artist.setHomeCity(updatedData.getHomeCity());
 
             return artistRepository.save(artist);
-        }).orElse(null);
+        }).orElseThrow(() -> new ResourceNotFoundException("Artist with id " + id + " not found"));
     }
 
     public Long getTicketCountForArtist(Long artistId) {
@@ -65,7 +66,6 @@ public class ArtistService {
         for (Event event : events) {
             totalTickets += ticketRepository.countByEventId(event.getId());
         }
-
         return totalTickets;
     }
 

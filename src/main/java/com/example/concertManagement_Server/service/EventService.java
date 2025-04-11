@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.repository.EventRepository;
@@ -42,7 +43,7 @@ public class EventService {
     // Retrieves upcoming events based on the current date
     public Event getEventById(Long id) {
         Optional<Event> optional = eventRepository.findById(id);
-        return optional.orElse(null);
+        return optional.orElseThrow(() -> new ResourceNotFoundException("Artist with id " + id + " not found"));
     }
 
     // Creates and saves a new event
@@ -65,7 +66,7 @@ public class EventService {
             e.setVenue(updatedData.getVenue());
             // etc.
             return eventRepository.save(e);
-        }).orElse(null);
+        }).orElseThrow(() -> new ResourceNotFoundException("Artist with id " + id + " not found"));
     }
 
     // Adds an artist to an event if both exist
@@ -74,21 +75,13 @@ public class EventService {
     }
 
     public Event addArtistToEvent(Long eventId, Long artistId) {
-        Optional<Event> eventOpt = eventRepository.findById(eventId);
-        // If the event doesn't exist, return null now, and never query the artist
-        if (eventOpt.isEmpty()) {
-            return null;
-        }
+        // Attempt to retrieve the event; if not found, throw an exception
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Event with id " + eventId + " not found"));
+        Artist artist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new ResourceNotFoundException("Artist with id " + artistId + " not found"));
 
-        // Then check the artist
-        Optional<Artist> artistOpt = artistRepository.findById(artistId);
-        if (artistOpt.isEmpty()) {
-            return null;
-        }
-
-        // Both event and artist exist
-        Event event = eventOpt.get();
-        Artist artist = artistOpt.get();
+        // Add the artist to the event and save the event
         event.getArtists().add(artist);
         return eventRepository.save(event);
     }

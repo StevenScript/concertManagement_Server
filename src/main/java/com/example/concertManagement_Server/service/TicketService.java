@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.model.Ticket;
 import com.example.concertManagement_Server.repository.TicketRepository;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,8 @@ public class TicketService {
 
     // Retrieves a ticket by its ID, or returns null if not found
     public Ticket getTicketById(Long id) {
-        Optional<Ticket> optional = ticketRepository.findById(id);
-        return optional.orElse(null);
+        return ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket with id " + id + " not found"));
     }
 
     // Creates and saves a new ticket
@@ -39,6 +40,6 @@ public class TicketService {
             t.setTicketType(updatedData.getTicketType());
             t.setSeatNumber(updatedData.getSeatNumber());
             return ticketRepository.save(t);
-        }).orElse(null);
+        }).orElseThrow(() -> new ResourceNotFoundException("Ticket with id " + id + " not found"));
     }
 }
