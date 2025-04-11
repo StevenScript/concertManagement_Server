@@ -4,6 +4,8 @@ import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.repository.EventRepository;
 import com.example.concertManagement_Server.repository.ArtistRepository;
+import com.example.concertManagement_Server.model.Ticket;
+import com.example.concertManagement_Server.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -15,16 +17,26 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final ArtistRepository artistRepository;
+    private final TicketRepository ticketRepository;
 
     // Retrieves all events from the database
-    public EventService(EventRepository eventRepository, ArtistRepository artistRepository) {
+    public EventService(EventRepository eventRepository, ArtistRepository artistRepository, TicketRepository ticketRepository) {
         this.eventRepository = eventRepository;
         this.artistRepository = artistRepository;
+        this.ticketRepository = ticketRepository;
     }
 
     // Retrieves an event by ID, or returns null if not found
     public List<Event> getAllEvents() {
         return eventRepository.findAll();
+    }
+
+    public List<Ticket> getTicketsForEvent(Long eventId) {
+        return ticketRepository.findByEventId(eventId);
+    }
+
+    public Long getTicketCountForEvent(Long eventId) {
+        return ticketRepository.countByEventId(eventId);
     }
 
     // Retrieves upcoming events based on the current date

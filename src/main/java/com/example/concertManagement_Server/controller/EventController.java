@@ -2,6 +2,7 @@ package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
+import com.example.concertManagement_Server.model.Ticket;
 import com.example.concertManagement_Server.service.EventService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -73,5 +74,17 @@ public class EventController {
     public ResponseEntity<Event> addArtistToEvent(@PathVariable Long eventId, @PathVariable Long artistId) {
         Event updatedEvent = eventService.addArtistToEvent(eventId, artistId);
         return updatedEvent != null ? ResponseEntity.ok(updatedEvent) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{id}/tickets")
+    public ResponseEntity<List<Ticket>> getTicketsForEvent(@PathVariable Long id) {
+        List<Ticket> tickets = eventService.getTicketsForEvent(id);
+        return ResponseEntity.ok(tickets);
+    }
+
+    @GetMapping("/{id}/ticket-count")
+    public ResponseEntity<Long> getTicketCountForEvent(@PathVariable Long id) {
+        Long count = eventService.getTicketCountForEvent(id);
+        return ResponseEntity.ok(count);
     }
 }

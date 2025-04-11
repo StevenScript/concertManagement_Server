@@ -1,6 +1,7 @@
 package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.model.Event;
+import com.example.concertManagement_Server.model.Ticket;
 import com.example.concertManagement_Server.service.EventService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -153,5 +154,52 @@ public class EventControllerTest {
 
         verify(eventService).listAllEventsForArtist(10L);
     }
+
+    @Test
+    void testGetTicketsForEvent() {
+        // Define a sample event ID for testing
+        Long eventId = 2L;
+
+        // Create a sample ticket object
+        Ticket ticket = new Ticket();
+        ticket.setId(501L);
+
+        // Prepare the expected list of tickets
+        List<Ticket> tickets = Collections.singletonList(ticket);
+
+        // Mock the service layer response.
+        when(eventService.getTicketsForEvent(eventId)).thenReturn(tickets);
+
+        // Call the method in the controller
+        ResponseEntity<List<Ticket>> response = eventController.getTicketsForEvent(eventId);
+
+        // Assertions:
+        assertEquals(200, response.getStatusCodeValue(), "Expected HTTP status 200 OK.");
+        assertNotNull(response.getBody(), "Response body should not be null.");
+        assertEquals(1, response.getBody().size(), "Expected one ticket in the list.");
+        assertEquals(501L, response.getBody().get(0).getId(), "Ticket ID should match the test ticket.");
+
+        // Verify that the service method was invoked with the correct eventId
+        verify(eventService).getTicketsForEvent(eventId);
+    }
+
+    @Test
+    void testGetTicketCountForEvent() {
+        Long eventId = 2L;
+        // Assume the total number of tickets for the event is 150
+        when(eventService.getTicketCountForEvent(eventId)).thenReturn(150L);
+
+        // Call the new endpoint method to get ticket count
+        ResponseEntity<Long> response = eventController.getTicketCountForEvent(eventId);
+
+        // Assertions:
+        assertEquals(200, response.getStatusCodeValue(), "Expected HTTP status 200 OK.");
+        assertEquals(150L, response.getBody(), "Ticket count should match the expected value.");
+
+        // Verify that the service method was invoked correctly
+        verify(eventService).getTicketCountForEvent(eventId);
+    }
+
+
 }
 
