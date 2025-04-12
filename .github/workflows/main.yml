@@ -45,11 +45,14 @@ jobs:
       # 7. Run Docker Container and Health Check
       - name: Run Docker container and perform health check
         run: |
+          # Build and start all services in detached mode
           docker compose up -d --build
-          # Increase wait time if needed so that backend and db are fully ready.
-          sleep 45
+          # Wait sufficiently for services to start up (increase sleep time if needed)
+          sleep 60
           docker compose logs backend
+          # Check the actuator health endpoint (ensure actuator endpoints are enabled)
           curl -f http://localhost:8080/actuator/health || (echo "Health check failed" && exit 1)
+          # Shut down all containers
           docker compose down
           shell: sh
         
