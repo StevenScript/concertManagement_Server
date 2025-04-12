@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.repository;
 
+import org.springframework.test.context.ActiveProfiles;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.model.Event;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import java.util.List;
 
 @DataJpaTest
+@ActiveProfiles("test")
 public class ArtistRepositoryTest {
     @Autowired
     private ArtistRepository artistRepository;
