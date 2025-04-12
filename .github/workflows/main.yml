@@ -45,14 +45,12 @@ jobs:
       # 7. Run Docker Container and Health Check
       - name: Run Docker container and perform health check
         run: |
-          # Start container in detached mode mapped to port 8080.
           docker run -d -p 8080:8080 --name test-container concert-management-server
-          # Wait for container to start up 
+          # Give container additional time to start up.
           sleep 30
-          # print container logs for debugging:
           docker logs test-container
-          # Perform a simple health check using curl on the actuator health endpoint.
+          # Check health endpoint (make sure actuator is enabled in your properties)
           curl -f http://localhost:8080/actuator/health || (echo "Health check failed" && exit 1)
-          # Stop and remove the test container
           docker stop test-container
           docker rm test-container
+        
