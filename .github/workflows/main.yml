@@ -43,21 +43,13 @@ jobs:
         run: docker build -t concert-management-server .
 
       # 7) Run Docker Compose and perform health check
-      - name: Run Docker container and perform health check
+      - name: Build Docker Image and Run Container with Docker Compose
         run: |
-          # Start all services defined in docker-compose.yml (backend, db, etc.)
           docker compose up -d --build
-
-          # Wait for the backend container to fully start (adjust sleep duration if necessary)
+          # Wait for the backend to fully start. Adjust sleep as needed.
           sleep 60
-
-          # Print logs for debugging
           docker compose logs backend
-
-          # Check that the backend health endpoint returns HTTP 200.
           curl -f http://localhost:8080/actuator/health || (echo "Health check failed" && exit 1)
-
-          # Shut down and remove containers
           docker compose down
         shell: bash
         

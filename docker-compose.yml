@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   backend:
     build: .
@@ -10,7 +12,7 @@ services:
       SPRING_DATASOURCE_DRIVER: "com.mysql.cj.jdbc.Driver"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
       SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_DIALECT: "org.hibernate.dialect.MySQL8Dialect"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.MySQL8Dialect"
     depends_on:
       - db
 
@@ -21,4 +23,10 @@ services:
       MYSQL_ROOT_PASSWORD: password
     ports:
       - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
+
 
