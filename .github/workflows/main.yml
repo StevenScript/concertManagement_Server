@@ -37,3 +37,20 @@ jobs:
       # 5) Run tests
       - name: Run tests
         run: mvn test --batch-mode
+
+      # 6. Build Docker Image
+      - name: Build Docker Image
+        run: docker build -t concert-management-server .
+
+      # 7. Run Docker Container and Health Check
+      - name: Run Docker Container Health Check
+        run: |
+          # Start container in detached mode mapped to port 8080.
+          docker run -d -p 8080:8080 --name test-container concert-management-server
+          # Wait for container to start up 
+          sleep 20
+          # Perform a simple health check using curl 
+          curl -f http://localhost:8080/actuator/health || (echo "Health check failed" && exit 1)
+          # Stop and remove the test container
+          docker stop test-container
+          docker rm test-container
