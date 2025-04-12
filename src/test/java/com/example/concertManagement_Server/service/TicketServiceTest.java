@@ -1,8 +1,10 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.model.Ticket;
 import com.example.concertManagement_Server.repository.TicketRepository;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -38,8 +40,12 @@ public class TicketServiceTest {
     void testGetTicketById_NotFound() {
         when(ticketRepository.findById(999L)).thenReturn(Optional.empty());
 
-        Ticket result = ticketService.getTicketById(999L);
-        Assertions.assertNull(result);
+        ResourceNotFoundException thrown = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> ticketService.getTicketById(999L),
+                "Expected exception when ticket is not found"
+        );
+        Assertions.assertEquals("Ticket with id 999 not found", thrown.getMessage());
         verify(ticketRepository).findById(999L);
     }
 
@@ -71,7 +77,7 @@ public class TicketServiceTest {
         existing.setTicketType("GA");
 
         when(ticketRepository.findById(5L)).thenReturn(Optional.of(existing));
-        when(ticketRepository.save(any(Ticket.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Ticket updatedData = new Ticket();
         updatedData.setBuyerName("Steven");
@@ -93,11 +99,16 @@ public class TicketServiceTest {
         Ticket updatedData = new Ticket();
         updatedData.setBuyerName("Not Found");
 
-        Ticket result = ticketService.updateTicket(999L, updatedData);
-        Assertions.assertNull(result);
+        ResourceNotFoundException thrown = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> ticketService.updateTicket(999L, updatedData),
+                "Expected exception when updating nonexistent ticket"
+        );
+        Assertions.assertEquals("Ticket with id 999 not found", thrown.getMessage());
+
         verify(ticketRepository).findById(999L);
         verify(ticketRepository, never()).save(any(Ticket.class));
     }
-
-
 }
+
+

@@ -1,5 +1,6 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.repository.EventRepository;
@@ -48,8 +49,10 @@ public class EventServiceTest {
     void testGetEventById_NotFound() {
         when(eventRepository.findById(999L)).thenReturn(Optional.empty());
 
-        Event result = eventService.getEventById(999L);
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            eventService.getEventById(999L);
+        }, "Expected ResourceNotFoundException for nonexistent event");
+
         verify(eventRepository).findById(999L);
     }
 
@@ -102,8 +105,10 @@ public class EventServiceTest {
         Event updatedData = new Event();
         updatedData.setEventDate(LocalDate.of(2025, 1, 1));
 
-        Event result = eventService.updateEvent(999L, updatedData);
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            eventService.updateEvent(999L, updatedData);
+        }, "Expected ResourceNotFoundException for updating nonexistent event");
+
         verify(eventRepository).findById(999L);
         verify(eventRepository, never()).save(any(Event.class));
     }
@@ -140,8 +145,9 @@ public class EventServiceTest {
     void testAddArtistToEvent_EventNotFound() {
         when(eventRepository.findById(999L)).thenReturn(Optional.empty());
 
-        Event result = eventService.addArtistToEvent(999L, 100L);
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            eventService.addArtistToEvent(999L, 100L);
+        }, "Expected exception when event is not found");
 
         verify(eventRepository).findById(999L);
         verify(artistRepository, never()).findById(anyLong());
@@ -157,8 +163,9 @@ public class EventServiceTest {
         when(eventRepository.findById(5L)).thenReturn(Optional.of(existingEvent));
         when(artistRepository.findById(999L)).thenReturn(Optional.empty());
 
-        Event result = eventService.addArtistToEvent(5L, 999L);
-        Assertions.assertNull(result);
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            eventService.addArtistToEvent(5L, 999L);
+        }, "Expected exception when artist is not found");
 
         verify(eventRepository).findById(5L);
         verify(artistRepository).findById(999L);

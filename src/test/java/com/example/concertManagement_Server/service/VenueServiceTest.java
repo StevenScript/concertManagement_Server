@@ -1,8 +1,10 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.repository.VenueRepository;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -38,8 +40,13 @@ public class VenueServiceTest {
     void testGetVenueById_NotFound() {
         when(venueRepository.findById(99L)).thenReturn(Optional.empty());
 
-        Venue result = venueService.getVenueById(99L);
-        Assertions.assertNull(result, "Null if venue not found");
+        // Only call inside assertThrows so the exception is caught properly
+        ResourceNotFoundException thrown = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> venueService.getVenueById(99L),
+                "Expected ResourceNotFoundException when venue not found"
+        );
+        Assertions.assertEquals("Venue with id 99 not found", thrown.getMessage());
         verify(venueRepository).findById(99L);
     }
 
@@ -91,8 +98,12 @@ public class VenueServiceTest {
         Venue updatedData = new Venue();
         updatedData.setName("Does not matter");
 
-        Venue result = venueService.updateVenue(999L, updatedData);
-        Assertions.assertNull(result);
+        ResourceNotFoundException thrown = Assertions.assertThrows(
+                ResourceNotFoundException.class,
+                () -> venueService.updateVenue(999L, updatedData),
+                "Expected ResourceNotFoundException when updating nonexistent venue"
+        );
+        Assertions.assertEquals("Venue with id 999 not found", thrown.getMessage());
         verify(venueRepository).findById(999L);
         verify(venueRepository, never()).save(any(Venue.class));
     }
