@@ -10,6 +10,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_JPA_SHOW_SQL=true
+      - SPRING_DATASOURCE_DRIVER=com.mysql.cj.jdbc.Driver
     depends_on:
       - db
 
