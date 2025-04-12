@@ -45,12 +45,11 @@ jobs:
       # 7. Run Docker Container and Health Check
       - name: Run Docker container and perform health check
         run: |
-          docker run -d -p 8080:8080 --name test-container concert-management-server
-          # Give container additional time to start up.
-          sleep 30
-          docker logs test-container
-          # Check health endpoint (make sure actuator is enabled in your properties)
+          docker-compose up -d --build
+          sleep 45
+          docker-compose logs backend          
           curl -f http://localhost:8080/actuator/health || (echo "Health check failed" && exit 1)
-          docker stop test-container
-          docker rm test-container
+          # Shut down all containers once the test is complete
+          docker-compose down
+          shell: sh
         
