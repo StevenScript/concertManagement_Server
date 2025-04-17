@@ -1,22 +1,35 @@
-# Use an official OpenJDK runtime as a parent image.
-FROM openjdk:17-jdk-alpine
+# ──────────────────────────────
+# 1) Builder stage – uses Maven
+# ──────────────────────────────
+FROM maven:3.9.5-eclipse-temurin-17 AS builder
 
-# Install Bash (Alpine uses "apk" package manager)
-RUN apk add --no-cache bash
+# Copy pom.xml first to leverage Docker cache for deps
+WORKDIR /workspace
+COPY pom.xml .
+RUN mvn -B dependency:resolve dependency:resolve-plugins
 
-# Set the working directory to /app.
+# Copy the actual source and build
+COPY src ./src
+RUN mvn -B clean package -DskipTests
+
+# ────────────────────────────────
+# 2) Runtime stage – use tiny JRE
+# ────────────────────────────────
+FROM eclipse-temurin:17-jre-alpine
+
+# Install Bash (for wait‑for‑it) and curl (if you need it)
+RUN apk add --no-cache bash curl
+
 WORKDIR /app
 
-# Download the wait-for-it script from GitHub and make it executable.
+# Grab wait‑for‑it
 ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /wait-for-it.sh
 RUN chmod +x /wait-for-it.sh
 
-# Use an ARG to allow dynamic jar file naming.
-ARG JAR_FILE=target/concert-management-server.jar
-COPY ${JAR_FILE} app.jar
+# Copy the fat jar from the builder
+# (the shaded/boot jar is the only file ending with ".jar" in target)
+COPY --from=builder /workspace/target/*jar /app/app.jar
 
-# Expose port 8080.
 EXPOSE 8080
 
-# Use the wait-for-it script to wait for the db on port 3306, then start the app.
 ENTRYPOINT ["/wait-for-it.sh", "db:3306", "--", "java", "-jar", "/app/app.jar"]
