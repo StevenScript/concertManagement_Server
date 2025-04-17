@@ -12,8 +12,8 @@ class JwtTokenProviderTest {
     @BeforeEach
     void setup() {
         String secret   = "VerySecretKeyForJwtSigningThatIsAtLeast256BitsLong123!";
-        long   validity = 1_000;                 // 1 s – keeps the test fast
-        provider        = new JwtTokenProvider(secret, validity);
+        long validityMillis = 10_000;                 // 1 s – keeps the test fast
+        provider        = new JwtTokenProvider(secret, validityMillis);
     }
 
     @Test
