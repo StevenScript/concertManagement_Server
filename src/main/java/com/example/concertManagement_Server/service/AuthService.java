@@ -1,60 +1,70 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.dto.AuthResponse;
+import com.example.concertManagement_Server.dto.LoginRequest;
+import com.example.concertManagement_Server.dto.RegisterRequest;
 import com.example.concertManagement_Server.exception.InvalidCredentialsException;
 import com.example.concertManagement_Server.exception.UsernameAlreadyExistsException;
 import com.example.concertManagement_Server.model.User;
 import com.example.concertManagement_Server.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-/**
- * Service handling authentication: registration and login.
- */
+import java.util.UUID;
+
 @Service
 public class AuthService {
-
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Registers a new user if the username is not already taken.
-     * @param username desired username
-     * @param password raw password
-     * @param role user role (e.g., "user", "admin")
-     * @param email user email address
-     * @return the created User entity
-     * @throws UsernameAlreadyExistsException when username is already in use
-     */
-    public User register(String username, String password, String role, String email) {
-        if (userRepository.existsByUsername(username)) {
-            throw new UsernameAlreadyExistsException("Username already taken: " + username);
+    // Primary, DTO‐based register
+    public AuthResponse register(RegisterRequest req) {
+        if (userRepository.existsByUsername(req.getUsername())) {
+            throw new UsernameAlreadyExistsException("Username already taken");
         }
-        User user = User.builder()
-                .username(username)
-                .password(password)
-                .role(role)
-                .email(email)
+        User u = User.builder()
+                .username(req.getUsername())
+                .email(req.getEmail())               // ← correct email mapping
+                .password(passwordEncoder.encode(req.getPassword()))
+                .role(req.getRole())
                 .build();
-        return userRepository.save(user);
+        userRepository.save(u);
+
+        String token = UUID.randomUUID().toString();
+        return new AuthResponse(u.getUsername(), u.getEmail(), u.getRole(), token);
     }
 
-    /**
-     * Authenticates a user by username and password.
-     * @param username user's username
-     * @param password user's password
-     * @return the authenticated User entity
-     * @throws InvalidCredentialsException when username not found or password mismatch
-     */
-    public User login(String username, String password) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
-        if (!user.getPassword().equals(password)) {
-            throw new InvalidCredentialsException("Invalid credentials");
+    // Overload so old tests calling register(a,b,c,d) still compile:
+    public AuthResponse register(String username,
+                                 String password,
+                                 String email,
+                                 String role) {
+        // Note: test suite passed (username, password, email, role)
+        RegisterRequest dto = new RegisterRequest(username, email, password, role);
+        return register(dto);
+    }
+
+    // Primary, DTO‐based login
+    public AuthResponse login(LoginRequest req) {
+        User u = userRepository.findByUsername(req.getUsername())
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
+
+        if (!passwordEncoder.matches(req.getPassword(), u.getPassword())) {
+            throw new InvalidCredentialsException("Invalid username or password");
         }
-        return user;
+
+        String token = UUID.randomUUID().toString();
+        return new AuthResponse(u.getUsername(), u.getEmail(), u.getRole(), token);
+    }
+
+    // Overload so old tests calling login(a,b) still compile:
+    public AuthResponse login(String username, String password) {
+        return login(new LoginRequest(username, password));
     }
 }
