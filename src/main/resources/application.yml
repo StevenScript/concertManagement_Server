@@ -1,3 +1,38 @@
 spring:
   profiles:
-    active: test
+    active: docker   # <‑‑ default when you run the jar or docker‑compose
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:mysql://db:3306/concertdb?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: root      # ⇒ keep in sync with docker‑compose
+    password: password  # ⇒ keep in sync with docker‑compose
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop          # fast schema for every test run
+    open-in-view: false
