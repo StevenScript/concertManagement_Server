@@ -1,32 +1,73 @@
-version: '3.8'
+version: "3.8"
 
+########################################
+#  NETWORK
+########################################
+# A user–defined bridge keeps container‑to‑container traffic private
+networks:
+  concert-net:
+
+########################################
+#  VOLUMES
+########################################
+volumes:
+  db-data:               # durable MySQL data
+
+########################################
+#  SERVICES
+########################################
 services:
-  backend:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/concertdb?useSSL=false&allowPublicKeyRetrieval=true"
-      SPRING_DATASOURCE_USERNAME: "root"
-      SPRING_DATASOURCE_PASSWORD: "password"
-      SPRING_DATASOURCE_DRIVER: "com.mysql.cj.jdbc.Driver"
-      SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.MySQL8Dialect"
-    depends_on:
-      - db
 
+  ################################################
+  #  Database
+  ################################################
   db:
-    image: mysql:8
+    image: mysql:8.3          # pin a specific tag for reproducible builds
+    container_name: concert-mysql
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: concertdb
       MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: concert
+      MYSQL_PASSWORD: concertpass
     ports:
+      # expose ONLY if you want to connect from host; otherwise drop it
       - "3307:3306"
     volumes:
       - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot", "password"]
+      interval: 10s
+      retries: 5
+    networks:
+      - concert-net
 
-volumes:
-  db-data:
-
-
+  ################################################
+  #  Spring Boot Backend
+  ################################################
+  backend:
+    # If your Dockerfile lives in the project root:
+    build: .
+    container_name: concert-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy   # wait for MySQL health‑check
+    environment:
+      # === DataSource ===
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/concertdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: concert
+      SPRING_DATASOURCE_PASSWORD: concertpass
+      # === JPA / Hibernate ===
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+      # === (Optional) JWT secret & validity ===
+      SECURITY_JWT_SECRET: VerySecretKeyForJwtSigningThatIsAtLeast256BitsLong
+      SECURITY_JWT_EXPIRATION-MS: 86400000        # 24h
+      # === Server port (inside the container) ===
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - concert-net
