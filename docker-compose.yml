@@ -1,72 +1,74 @@
 version: "3.8"
 
-########################################
-#  NETWORK
-########################################
-# A user–defined bridge keeps container‑to‑container traffic private
+########################
+#  NETWORK + VOLUMES   #
+########################
 networks:
   concert-net:
 
-########################################
-#  VOLUMES
-########################################
 volumes:
-  db-data:               # durable MySQL data
+  db-data:          # durable MySQL data
 
-########################################
-#  SERVICES
-########################################
+########################
+#      SERVICES        #
+########################
 services:
 
-  ################################################
-  #  Database
-  ################################################
+  ########################
+  # MySQL 8.3 container  #
+  ########################
   db:
-    image: mysql:8.3          # pin a specific tag for reproducible builds
+    image: mysql:8.3
     container_name: concert-mysql
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_DATABASE: concertdb
       MYSQL_ROOT_PASSWORD: password
       MYSQL_USER: concert
       MYSQL_PASSWORD: concertpass
-    ports:
-      # expose ONLY if you want to connect from host; otherwise drop it
-      - "3307:3306"
     volumes:
       - db-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot", "password"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
+      timeout: 5s
       retries: 5
     networks:
       - concert-net
+    # expose ONLY if you need to connect from host; otherwise delete the line
+    ports:
+      - "3307:3306"
 
-  ################################################
-  #  Spring Boot Backend
-  ################################################
+  ########################
+  # Spring‑Boot backend  #
+  ########################
   backend:
-    # If your Dockerfile lives in the project root:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile          # adjust if your Dockerfile lives elsewhere
     container_name: concert-backend
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy   # wait for MySQL health‑check
+        condition: service_healthy    # wait for MySQL
     environment:
-      # === DataSource ===
+      # ---------- Datasource ----------
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/concertdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: concert
       SPRING_DATASOURCE_PASSWORD: concertpass
-      # === JPA / Hibernate ===
+
+      # ---------- JPA ----------
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_SHOW_SQL: "false"
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
-      # === (Optional) JWT secret & validity ===
+
+      # ---------- JWT ----------
       SECURITY_JWT_SECRET: VerySecretKeyForJwtSigningThatIsAtLeast256BitsLong
-      SECURITY_JWT_EXPIRATION-MS: 86400000        # 24h
-      # === Server port (inside the container) ===
-      SERVER_PORT: 8080
+      SECURITY_JWT_EXPIRATION_MS: 86400000   # 24 h; **underscore**, not dash
+
+      # ---------- JVM tuning (optional) ----------
+      JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     ports:
       - "8080:8080"
     networks:
