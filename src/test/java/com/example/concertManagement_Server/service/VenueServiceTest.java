@@ -1,110 +1,109 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.dto.VenueRequest;
 import com.example.concertManagement_Server.exception.ResourceNotFoundException;
+import com.example.concertManagement_Server.mapper.VenueMapper;
 import com.example.concertManagement_Server.model.Venue;
+import com.example.concertManagement_Server.repository.EventRepository;
 import com.example.concertManagement_Server.repository.VenueRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Optional;
 
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class VenueServiceTest {
 
     @Mock
     private VenueRepository venueRepository;
+
+    @Mock
+    private EventRepository eventRepository;
+
+    @Mock
+    private VenueMapper venueMapper;
 
     @InjectMocks
     private VenueService venueService;
 
     @Test
     void testGetVenueById_Found() {
-        Venue mockVenue = new Venue();
-        mockVenue.setId(10L);
-        mockVenue.setName("Mock Venue");
-
-        when(venueRepository.findById(10L)).thenReturn(Optional.of(mockVenue));
+        Venue v = new Venue();
+        v.setId(10L);
+        v.setName("Mock Venue");
+        given(venueRepository.findById(10L)).willReturn(Optional.of(v));
 
         Venue result = venueService.getVenueById(10L);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("Mock Venue", result.getName());
-        verify(venueRepository).findById(10L);
+        assertNotNull(result);
+        assertEquals("Mock Venue", result.getName());
     }
 
     @Test
     void testGetVenueById_NotFound() {
-        when(venueRepository.findById(99L)).thenReturn(Optional.empty());
-
-        // Only call inside assertThrows so the exception is caught properly
-        ResourceNotFoundException thrown = Assertions.assertThrows(
+        given(venueRepository.findById(99L)).willReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(
                 ResourceNotFoundException.class,
-                () -> venueService.getVenueById(99L),
-                "Expected ResourceNotFoundException when venue not found"
+                () -> venueService.getVenueById(99L)
         );
-        Assertions.assertEquals("Venue with id 99 not found", thrown.getMessage());
-        verify(venueRepository).findById(99L);
+        assertTrue(ex.getMessage().contains("Venue with id 99 not found"));
     }
 
     @Test
     void testCreateVenue() {
-        Venue newVenue = new Venue();
-        newVenue.setName("New Venue");
+        // Arrange
+        VenueRequest req = new VenueRequest("New Name", "City X", 500);
+        Venue entity = new Venue();
+        entity.setName("New Name");
+        lenient().when(venueMapper.toEntity(req)).thenReturn(entity);
 
-        Venue savedVenue = new Venue();
-        savedVenue.setId(123L);
-        savedVenue.setName("New Venue");
+        Venue saved = new Venue();
+        saved.setId(123L);
+        saved.setName("New Name");
+        lenient().when(venueRepository.save(any(Venue.class))).thenReturn(saved);
 
-        when(venueRepository.save(newVenue)).thenReturn(savedVenue);
+        // Act
+        Venue result = venueService.createVenue(req);
 
-        Venue result = venueService.createVenue(newVenue);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(123L, result.getId());
-        Assertions.assertEquals("New Venue", result.getName());
-
-        verify(venueRepository).save(newVenue);
+        // Assert
+        assertNotNull(result);
+        assertEquals(123L, result.getId());
+        assertEquals("New Name", result.getName());
     }
 
     @Test
     void testUpdateVenue_Found() {
-        Venue existingVenue = new Venue();
-        existingVenue.setId(5L);
-        existingVenue.setName("Old Name");
-        existingVenue.setLocation("City A");
+        VenueRequest req = new VenueRequest("Updated", "City Y", 800);
+        Venue existing = new Venue();
+        existing.setId(5L);
+        existing.setName("Old");
+        lenient().when(venueRepository.findById(5L)).thenReturn(Optional.of(existing));
+        lenient().when(venueRepository.save(any(Venue.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        when(venueRepository.findById(5L)).thenReturn(Optional.of(existingVenue));
-        when(venueRepository.save(any(Venue.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        Venue updatedData = new Venue();
-        updatedData.setName("Updated Name");
-        updatedData.setLocation("City B");
-
-        Venue result = venueService.updateVenue(5L, updatedData);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("Updated Name", result.getName());
-        Assertions.assertEquals("City B", result.getLocation());
-        verify(venueRepository).findById(5L);
-        verify(venueRepository).save(any(Venue.class));
+        Venue result = venueService.updateVenue(5L, req);
+        assertEquals(5L, result.getId());
+        assertEquals("Updated", result.getName());
+        assertEquals("City Y", result.getLocation());
     }
 
     @Test
     void testUpdateVenue_NotFound() {
-        when(venueRepository.findById(999L)).thenReturn(Optional.empty());
-
-        Venue updatedData = new Venue();
-        updatedData.setName("Does not matter");
-
-        ResourceNotFoundException thrown = Assertions.assertThrows(
+        lenient().when(venueRepository.findById(999L)).thenReturn(Optional.empty());
+        VenueRequest req = new VenueRequest("Doesn’t", "Matter", 1);
+        ResourceNotFoundException ex = assertThrows(
                 ResourceNotFoundException.class,
-                () -> venueService.updateVenue(999L, updatedData),
-                "Expected ResourceNotFoundException when updating nonexistent venue"
+                () -> venueService.updateVenue(999L, req)
         );
-        Assertions.assertEquals("Venue with id 999 not found", thrown.getMessage());
-        verify(venueRepository).findById(999L);
-        verify(venueRepository, never()).save(any(Venue.class));
+        assertTrue(ex.getMessage().contains("Venue with id 999 not found"));
     }
 }

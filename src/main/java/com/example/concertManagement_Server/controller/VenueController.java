@@ -1,8 +1,10 @@
 package com.example.concertManagement_Server.controller;
 
+import com.example.concertManagement_Server.dto.VenueDto;
+import com.example.concertManagement_Server.dto.VenueRequest;
+import com.example.concertManagement_Server.mapper.VenueMapper;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
-import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.service.ArtistService;
 import com.example.concertManagement_Server.service.VenueService;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/venues")
@@ -17,57 +20,50 @@ public class VenueController {
 
     private final VenueService venueService;
     private final ArtistService artistService;
+    private final VenueMapper venueMapper;
 
-    // Constructor-based dependency injection for required services
-    public VenueController(VenueService venueService, ArtistService artistService) {
+    public VenueController(VenueService venueService,
+                           ArtistService artistService,
+                           VenueMapper venueMapper) {
         this.venueService = venueService;
         this.artistService = artistService;
+        this.venueMapper = venueMapper;
     }
 
-    // Retrieves all venues from the database
     @GetMapping
-    public ResponseEntity<List<Venue>> listAllVenues() {
-        List<Venue> venues = venueService.listAllVenues();
-        return ResponseEntity.ok(venues);
+    public ResponseEntity<List<VenueDto>> listAllVenues() {
+        List<VenueDto> dtos = venueService.listAllVenues().stream()
+                .map(venueMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
-    // Retrieves a specific venue by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Venue> getVenue(@PathVariable Long id) {
-        Venue venue = venueService.getVenueById(id);
-        if (venue == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(venue);
+    public ResponseEntity<VenueDto> getVenue(@PathVariable Long id) {
+        VenueDto dto = venueMapper.toDto(venueService.getVenueById(id));
+        return ResponseEntity.ok(dto);
     }
 
-    // Creates a new venue entry
     @PostMapping
-    public ResponseEntity<Venue> createVenue(@RequestBody Venue venue) {
-        Venue created = venueService.createVenue(venue);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public ResponseEntity<VenueDto> createVenue(@RequestBody VenueRequest req) {
+        var saved = venueService.createVenue(req);
+        return new ResponseEntity<>(venueMapper.toDto(saved), HttpStatus.CREATED);
     }
 
-    // Updates an existing venue by ID
     @PutMapping("/{id}")
-    public ResponseEntity<Venue> updateVenue(@PathVariable Long id, @RequestBody Venue venueData) {
-        Venue updated = venueService.updateVenue(id, venueData);
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<VenueDto> updateVenue(@PathVariable Long id,
+                                                @RequestBody VenueRequest req) {
+        var updated = venueService.updateVenue(id, req);
+        return ResponseEntity.ok(venueMapper.toDto(updated));
     }
 
-    // Retrieves all artists associated with a specific venue
     @GetMapping("/{id}/artists")
     public ResponseEntity<List<Artist>> getArtistsForVenue(@PathVariable Long id) {
-        List<Artist> artists = artistService.listAllArtistsForVenue(id);
-        return ResponseEntity.ok(artists);
+        return ResponseEntity.ok(artistService.listAllArtistsForVenue(id));
     }
 
     @GetMapping("/{id}/upcoming-events")
     public ResponseEntity<List<Event>> getUpcomingEventsForVenue(@PathVariable Long id) {
-        List<Event> events = venueService.findUpcomingEventsForVenue(id);
-        return ResponseEntity.ok(events);
+        return ResponseEntity.ok(venueService.findUpcomingEventsForVenue(id));
     }
 }
