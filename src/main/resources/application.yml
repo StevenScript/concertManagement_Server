@@ -36,3 +36,12 @@ spring:
     hibernate:
       ddl-auto: create-drop          # fast schema for every test run
     open-in-view: false
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info
+    endpoint:
+      health:
+        show-details: always
