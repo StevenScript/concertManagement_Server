@@ -8,10 +8,10 @@ import com.example.concertManagement_Server.repository.ArtistRepository;
 import com.example.concertManagement_Server.repository.EventRepository;
 import com.example.concertManagement_Server.repository.TicketRepository;
 import org.springframework.stereotype.Service;
-import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ArtistService {
@@ -19,7 +19,6 @@ public class ArtistService {
     private final EventRepository eventRepository;
     private final TicketRepository ticketRepository;
 
-    // Constructor injection for repository dependency
     public ArtistService(ArtistRepository artistRepository,
                          EventRepository eventRepository,
                          TicketRepository ticketRepository) {
@@ -28,61 +27,43 @@ public class ArtistService {
         this.ticketRepository = ticketRepository;
     }
 
-    // Retrieves all artists from the database
     public List<Artist> getAllArtists() {
         return artistRepository.findAll();
     }
 
-    // Retrieves an artist by ID, or returns null if not found
     public Artist getArtistById(Long id) {
-        Optional<Artist> optionalArtist = artistRepository.findById(id);
-        return optionalArtist.orElseThrow(() -> new ResourceNotFoundException("Artist with id " + id + " not found"));
+        return artistRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Artist with id " + id + " not found"));
     }
 
-    // Creates and saves a new artist record
     public Artist createArtist(Artist artist) {
-        // Potential business logic, e.g., validate fields
         return artistRepository.save(artist);
     }
 
-    // Updates an existing artist's details if found
     public Artist updateArtist(Long id, Artist updatedData) {
-        return artistRepository.findById(id).map(artist -> {
-            // We found an Artist, apply changes
-            artist.setStageName(updatedData.getStageName());
-            artist.setGenre(updatedData.getGenre());
-            artist.setHomeCity(updatedData.getHomeCity());
-
-            return artistRepository.save(artist);
+        return artistRepository.findById(id).map(a -> {
+            a.setStageName(updatedData.getStageName());
+            a.setGenre(updatedData.getGenre());
+            a.setMembersCount(updatedData.getMembersCount());
+            a.setHomeCity(updatedData.getHomeCity());
+            return artistRepository.save(a);
         }).orElseThrow(() -> new ResourceNotFoundException("Artist with id " + id + " not found"));
     }
 
     public Long getTicketCountForArtist(Long artistId) {
-        // Retrieve all events for the given artist using a custom repository method
         List<Event> events = eventRepository.findEventsByArtistId(artistId);
-
-        long totalTickets = 0;
-        // For each event, count the tickets using the ticket repository
-        for (Event event : events) {
-            totalTickets += ticketRepository.countByEventId(event.getId());
-        }
-        return totalTickets;
+        return events.stream()
+                .mapToLong(e -> ticketRepository.countByEventId(e.getId()))
+                .sum();
     }
 
     public List<Venue> getVenuesForArtist(Long artistId) {
-        // Retrieve all events where the artist is performing using a repository method
-        List<Event> events = eventRepository.findEventsByArtistId(artistId);
-
-        // Extract the venues from these events, filter to get distinct entries
-        return events.stream()
+        return eventRepository.findEventsByArtistId(artistId).stream()
                 .map(Event::getVenue)
-                .filter(venue -> venue != null)
                 .distinct()
                 .collect(Collectors.toList());
     }
 
-
-    // Retrieves all artists associated with a specific venue
     public List<Artist> listAllArtistsForVenue(Long venueId) {
         return artistRepository.findArtistsByVenueId(venueId);
     }

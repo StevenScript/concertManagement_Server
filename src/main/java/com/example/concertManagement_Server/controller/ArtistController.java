@@ -1,8 +1,10 @@
 package com.example.concertManagement_Server.controller;
 
-import com.example.concertManagement_Server.model.Artist;
-import com.example.concertManagement_Server.model.Venue;
+import com.example.concertManagement_Server.dto.ArtistDto;
+import com.example.concertManagement_Server.dto.ArtistRequest;
+import com.example.concertManagement_Server.mapper.ArtistMapper;
 import com.example.concertManagement_Server.model.Event;
+import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.service.ArtistService;
 import com.example.concertManagement_Server.service.EventService;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/artists")
@@ -17,62 +20,55 @@ public class ArtistController {
 
     private final ArtistService artistService;
     private final EventService eventService;
+    private final ArtistMapper artistMapper;
 
-    // Constructor-based dependency injection for required services
-    public ArtistController(ArtistService artistService, EventService eventService) {
+    public ArtistController(ArtistService artistService,
+                            EventService eventService,
+                            ArtistMapper artistMapper) {
         this.artistService = artistService;
         this.eventService = eventService;
+        this.artistMapper = artistMapper;
     }
 
-    // Retrieves all artists from the database
     @GetMapping
-    public List<Artist> getAllArtists() {
-        return artistService.getAllArtists();
+    public List<ArtistDto> getAllArtists() {
+        return artistService.getAllArtists().stream()
+                .map(artistMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    // Retrieves a specific artist by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Artist> getArtist(@PathVariable Long id) {
-        Artist artist = artistService.getArtistById(id);
-        if (artist == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(artist);
+    public ResponseEntity<ArtistDto> getArtist(@PathVariable Long id) {
+        var a = artistService.getArtistById(id);
+        return ResponseEntity.ok(artistMapper.toDto(a));
     }
 
-    // Creates a new artist entry
     @PostMapping
-    public ResponseEntity<Artist> createArtist(@RequestBody Artist artist) {
-        Artist created = artistService.createArtist(artist);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public ResponseEntity<ArtistDto> createArtist(@RequestBody ArtistRequest req) {
+        var entity = artistMapper.toEntity(req);
+        var created = artistService.createArtist(entity);
+        return new ResponseEntity<>(artistMapper.toDto(created), HttpStatus.CREATED);
     }
 
-    // Updates an existing artist's details by ID
     @PutMapping("/{id}")
-    public ResponseEntity<Artist> updateArtist(@PathVariable Long id, @RequestBody Artist artistData) {
-        Artist updated = artistService.updateArtist(id, artistData);
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<ArtistDto> updateArtist(@PathVariable Long id,
+                                                  @RequestBody ArtistRequest req) {
+        var updated = artistService.updateArtist(id, artistMapper.toEntity(req));
+        return ResponseEntity.ok(artistMapper.toDto(updated));
     }
 
-    // Retrieves all events associated with a specific artist by ID
     @GetMapping("/{id}/events")
     public ResponseEntity<List<Event>> getEventsForArtist(@PathVariable Long id) {
-        List<Event> events = eventService.listAllEventsForArtist(id);
-        return ResponseEntity.ok(events);
+        return ResponseEntity.ok(eventService.listAllEventsForArtist(id));
     }
 
     @GetMapping("/{artistId}/ticket-count")
     public ResponseEntity<Long> getTicketCountForArtist(@PathVariable Long artistId) {
-        Long count = artistService.getTicketCountForArtist(artistId);
-        return ResponseEntity.ok(count);
+        return ResponseEntity.ok(artistService.getTicketCountForArtist(artistId));
     }
 
     @GetMapping("/{artistId}/venues")
     public ResponseEntity<List<Venue>> getVenuesForArtist(@PathVariable Long artistId) {
-        List<Venue> venues = artistService.getVenuesForArtist(artistId);
-        return ResponseEntity.ok(venues);
+        return ResponseEntity.ok(artistService.getVenuesForArtist(artistId));
     }
 }
