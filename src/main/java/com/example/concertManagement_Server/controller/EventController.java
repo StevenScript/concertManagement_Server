@@ -1,90 +1,106 @@
 package com.example.concertManagement_Server.controller;
 
-import com.example.concertManagement_Server.model.Artist;
+import com.example.concertManagement_Server.dto.EventDto;
+import com.example.concertManagement_Server.dto.EventRequest;
+import com.example.concertManagement_Server.mapper.EventMapper;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Ticket;
+import com.example.concertManagement_Server.model.Venue;
+import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.service.EventService;
+import com.example.concertManagement_Server.service.VenueService;
+import com.example.concertManagement_Server.service.ArtistService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/events")
 public class EventController {
 
     private final EventService eventService;
+    private final VenueService venueService;
+    private final ArtistService artistService;
+    private final EventMapper eventMapper;
 
-    // Constructor-based dependency injection for the event service
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService,
+                           VenueService venueService,
+                           ArtistService artistService,
+                           EventMapper eventMapper) {
         this.eventService = eventService;
+        this.venueService = venueService;
+        this.artistService = artistService;
+        this.eventMapper = eventMapper;
     }
 
-    // Retrieves all events from the database
     @GetMapping
-    public List<Event> getAllEvents() {
-        return eventService.getAllEvents();
+    public List<EventDto> getAllEvents() {
+        return eventService.getAllEvents().stream()
+                .map(eventMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    // Retrieves a list of upcoming events based on the current date
-    @GetMapping("/upcoming")  // ✅ Correct endpoint
-    public List<Event> getUpcomingEvents() {
-        return eventService.findUpcomingEvents();
+    @GetMapping("/upcoming")
+    public List<EventDto> getUpcomingEvents() {
+        return eventService.findUpcomingEvents().stream()
+                .map(eventMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    // Retrieves an event by its ID
     @GetMapping("/{id}")
-    public ResponseEntity<Event> getEvent(@PathVariable Long id) {
-        Event event = eventService.getEventById(id);
-        if (event == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(event);
+    public ResponseEntity<EventDto> getEvent(@PathVariable Long id) {
+        Event e = eventService.getEventById(id);
+        return ResponseEntity.ok(eventMapper.toDto(e));
     }
 
-    // Creates a new event entry
     @PostMapping
-    public ResponseEntity<Event> createEvent(@RequestBody Event event) {
-        Event created = eventService.createEvent(event);
-        return ResponseEntity.status(201).body(created);
+    public ResponseEntity<EventDto> createEvent(@RequestBody EventRequest req) {
+        Venue v = venueService.getVenueById(req.getVenueId());
+        Set<Artist> artists = req.getArtistIds().stream()
+                .map(artistService::getArtistById)
+                .collect(Collectors.toSet());
+        Event entity = eventMapper.toEntity(req, v, artists);
+        Event saved = eventService.createEvent(entity);
+        return new ResponseEntity<>(eventMapper.toDto(saved), HttpStatus.CREATED);
     }
 
-    // Updates an existing event by ID
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event eventData) {
-        Event updated = eventService.updateEvent(id, eventData);
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<EventDto> updateEvent(@PathVariable Long id, @RequestBody EventRequest req) {
+        Venue v = venueService.getVenueById(req.getVenueId());
+        Set<Artist> artists = req.getArtistIds().stream()
+                .map(artistService::getArtistById)
+                .collect(Collectors.toSet());
+        Event existing = eventService.getEventById(id);
+        eventMapper.updateEntity(req, existing, v, artists);
+        Event saved = eventService.updateEvent(id, existing);
+        return ResponseEntity.ok(eventMapper.toDto(saved));
     }
 
-    // Retrieves all events associated with a specific artist by artist ID
     @GetMapping("/artist/{artistId}")
-    public ResponseEntity<List<Event>> getEventsByArtistId(@PathVariable Long artistId) {
-        List<Event> events = eventService.listAllEventsForArtist(artistId);
-        if (events.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(events);
+    public ResponseEntity<List<EventDto>> getEventsByArtist(@PathVariable Long artistId) {
+        List<EventDto> dtos = eventService.listAllEventsForArtist(artistId).stream()
+                .map(eventMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
-    // Adds an artist to an existing event
     @PostMapping("/{eventId}/artists/{artistId}")
-    public ResponseEntity<Event> addArtistToEvent(@PathVariable Long eventId, @PathVariable Long artistId) {
-        Event updatedEvent = eventService.addArtistToEvent(eventId, artistId);
-        return updatedEvent != null ? ResponseEntity.ok(updatedEvent) : ResponseEntity.notFound().build();
+    public ResponseEntity<EventDto> addArtistToEvent(@PathVariable Long eventId, @PathVariable Long artistId) {
+        Event updated = eventService.addArtistToEvent(eventId, artistId);
+        return ResponseEntity.ok(eventMapper.toDto(updated));
     }
 
     @GetMapping("/{id}/tickets")
     public ResponseEntity<List<Ticket>> getTicketsForEvent(@PathVariable Long id) {
-        List<Ticket> tickets = eventService.getTicketsForEvent(id);
-        return ResponseEntity.ok(tickets);
+        return ResponseEntity.ok(eventService.getTicketsForEvent(id));
     }
 
     @GetMapping("/{id}/ticket-count")
     public ResponseEntity<Long> getTicketCountForEvent(@PathVariable Long id) {
-        Long count = eventService.getTicketCountForEvent(id);
-        return ResponseEntity.ok(count);
+        return ResponseEntity.ok(eventService.getTicketCountForEvent(id));
     }
 }

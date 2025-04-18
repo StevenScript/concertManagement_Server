@@ -3,11 +3,14 @@ package com.example.concertManagement_Server.service;
 import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
-import com.example.concertManagement_Server.repository.EventRepository;
+import com.example.concertManagement_Server.model.Ticket;
 import com.example.concertManagement_Server.repository.ArtistRepository;
-import org.junit.jupiter.api.*;
+import com.example.concertManagement_Server.repository.EventRepository;
+import com.example.concertManagement_Server.repository.TicketRepository;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
@@ -15,6 +18,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,8 +32,36 @@ public class EventServiceTest {
     @Mock
     private ArtistRepository artistRepository;
 
+    @Mock
+    private TicketRepository ticketRepository;
+
     @InjectMocks
     private EventService eventService;
+
+    @Test
+    void testGetAllEvents() {
+        Event e1 = new Event(); e1.setId(1L);
+        Event e2 = new Event(); e2.setId(2L);
+        when(eventRepository.findAll()).thenReturn(List.of(e1, e2));
+
+        List<Event> results = eventService.getAllEvents();
+        assertEquals(2, results.size());
+        assertEquals(1L, results.get(0).getId());
+        assertEquals(2L, results.get(1).getId());
+        verify(eventRepository).findAll();
+    }
+
+    @Test
+    void testFindUpcomingEvents() {
+        LocalDate today = LocalDate.now();
+        Event upcoming = new Event(); upcoming.setId(3L); upcoming.setEventDate(today.plusDays(1));
+        when(eventRepository.findByEventDateAfter(today)).thenReturn(List.of(upcoming));
+
+        List<Event> results = eventService.findUpcomingEvents();
+        assertEquals(1, results.size());
+        assertEquals(3L, results.get(0).getId());
+        verify(eventRepository).findByEventDateAfter(today);
+    }
 
     @Test
     void testGetEventById_Found() {
@@ -40,8 +72,8 @@ public class EventServiceTest {
         when(eventRepository.findById(50L)).thenReturn(Optional.of(mockEvent));
 
         Event result = eventService.getEventById(50L);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(LocalDate.of(2025, 5, 10), result.getEventDate());
+        assertNotNull(result);
+        assertEquals(LocalDate.of(2025, 5, 10), result.getEventDate());
         verify(eventRepository).findById(50L);
     }
 
@@ -49,10 +81,7 @@ public class EventServiceTest {
     void testGetEventById_NotFound() {
         when(eventRepository.findById(999L)).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-            eventService.getEventById(999L);
-        }, "Expected ResourceNotFoundException for nonexistent event");
-
+        assertThrows(ResourceNotFoundException.class, () -> eventService.getEventById(999L));
         verify(eventRepository).findById(999L);
     }
 
@@ -70,9 +99,9 @@ public class EventServiceTest {
         when(eventRepository.save(newEvent)).thenReturn(savedEvent);
 
         Event result = eventService.createEvent(newEvent);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(101L, result.getId());
-        Assertions.assertEquals(LocalDate.of(2025, 8, 20), result.getEventDate());
+        assertNotNull(result);
+        assertEquals(101L, result.getId());
+        assertEquals(LocalDate.of(2025, 8, 20), result.getEventDate());
         verify(eventRepository).save(newEvent);
     }
 
@@ -91,9 +120,9 @@ public class EventServiceTest {
         updatedData.setTicketPrice(60.0);
 
         Event result = eventService.updateEvent(5L, updatedData);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(LocalDate.of(2025, 6, 15), result.getEventDate());
-        Assertions.assertEquals(60.0, result.getTicketPrice());
+        assertNotNull(result);
+        assertEquals(LocalDate.of(2025, 6, 15), result.getEventDate());
+        assertEquals(60.0, result.getTicketPrice());
         verify(eventRepository).findById(5L);
         verify(eventRepository).save(any(Event.class));
     }
@@ -105,10 +134,7 @@ public class EventServiceTest {
         Event updatedData = new Event();
         updatedData.setEventDate(LocalDate.of(2025, 1, 1));
 
-        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-            eventService.updateEvent(999L, updatedData);
-        }, "Expected ResourceNotFoundException for updating nonexistent event");
-
+        assertThrows(ResourceNotFoundException.class, () -> eventService.updateEvent(999L, updatedData));
         verify(eventRepository).findById(999L);
         verify(eventRepository, never()).save(any(Event.class));
     }
@@ -119,23 +145,19 @@ public class EventServiceTest {
         existingEvent.setId(5L);
         existingEvent.setArtists(new HashSet<>());
 
-        // Artist to add
         Artist newArtist = new Artist();
         newArtist.setId(100L);
         newArtist.setStageName("New Artist");
 
-        // Mocking repo methods
         when(eventRepository.findById(5L)).thenReturn(Optional.of(existingEvent));
         when(artistRepository.findById(100L)).thenReturn(Optional.of(newArtist));
         when(eventRepository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Event result = eventService.addArtistToEvent(5L, 100L);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(1, result.getArtists().size());
-        Assertions.assertTrue(result.getArtists().stream().anyMatch(a -> a.getId().equals(100L)));
-
-        // Verify interactions
+        assertNotNull(result);
+        assertEquals(1, result.getArtists().size());
+        assertTrue(result.getArtists().stream().anyMatch(a -> a.getId().equals(100L)));
         verify(eventRepository).findById(5L);
         verify(artistRepository).findById(100L);
         verify(eventRepository).save(any(Event.class));
@@ -145,10 +167,7 @@ public class EventServiceTest {
     void testAddArtistToEvent_EventNotFound() {
         when(eventRepository.findById(999L)).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-            eventService.addArtistToEvent(999L, 100L);
-        }, "Expected exception when event is not found");
-
+        assertThrows(ResourceNotFoundException.class, () -> eventService.addArtistToEvent(999L, 100L));
         verify(eventRepository).findById(999L);
         verify(artistRepository, never()).findById(anyLong());
         verify(eventRepository, never()).save(any(Event.class));
@@ -163,10 +182,7 @@ public class EventServiceTest {
         when(eventRepository.findById(5L)).thenReturn(Optional.of(existingEvent));
         when(artistRepository.findById(999L)).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
-            eventService.addArtistToEvent(5L, 999L);
-        }, "Expected exception when artist is not found");
-
+        assertThrows(ResourceNotFoundException.class, () -> eventService.addArtistToEvent(5L, 999L));
         verify(eventRepository).findById(5L);
         verify(artistRepository).findById(999L);
         verify(eventRepository, never()).save(any(Event.class));
@@ -184,7 +200,28 @@ public class EventServiceTest {
         List<Event> results = eventService.listAllEventsForArtist(10L);
         assertEquals(1, results.size());
         assertEquals(LocalDate.of(2025, 5, 10), results.get(0).getEventDate());
-
         verify(eventRepository).findEventsByArtistId(10L);
     }
+
+    @Test
+    void testGetTicketsForEvent() {
+        Ticket t = new Ticket();
+        t.setId(501L);
+        when(ticketRepository.findByEventId(2L)).thenReturn(List.of(t));
+
+        List<Ticket> tickets = eventService.getTicketsForEvent(2L);
+        assertEquals(1, tickets.size());
+        assertEquals(501L, tickets.get(0).getId());
+        verify(ticketRepository).findByEventId(2L);
+    }
+
+    @Test
+    void testGetTicketCountForEvent() {
+        when(ticketRepository.countByEventId(2L)).thenReturn(150L);
+
+        Long count = eventService.getTicketCountForEvent(2L);
+        assertEquals(150L, count);
+        verify(ticketRepository).countByEventId(2L);
+    }
 }
+
