@@ -1,4 +1,15 @@
-# Concert Management Backend
+## This is the Mostly complete backend meant to work with:
+-https://github.com/StevenScript/concertManagement_Server
+De to time retraints, I have not deployed to AWS/Docker. 
+
+## Concert Management Backend
+
+## **Author:** Steven Norris  
+## **Date:** April 19, 2025
+
+
+
+----
 
 **Author:** Steven Norris  
 **Date:** April 19, 2025
