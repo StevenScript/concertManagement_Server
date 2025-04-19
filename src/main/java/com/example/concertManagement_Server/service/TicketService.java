@@ -1,45 +1,73 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.dto.TicketDto;
+import com.example.concertManagement_Server.dto.TicketRequest;
 import com.example.concertManagement_Server.exception.ResourceNotFoundException;
+import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Ticket;
+import com.example.concertManagement_Server.repository.EventRepository;
 import com.example.concertManagement_Server.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-
 @Service
 public class TicketService {
-
     private final TicketRepository ticketRepository;
+    private final EventRepository eventRepository;
 
-    public TicketService(TicketRepository ticketRepository) {
+    public TicketService(TicketRepository ticketRepository,
+                         EventRepository eventRepository) {
         this.ticketRepository = ticketRepository;
+        this.eventRepository = eventRepository;
     }
 
-    // Retrieves all tickets from the database
-    public List<Ticket> getAllTickets() {
-        return ticketRepository.findAll();
-    }
-
-    // Retrieves a ticket by its ID, or returns null if not found
-    public Ticket getTicketById(Long id) {
-        return ticketRepository.findById(id)
+    /** Fetches a Ticket, converts to DTO */
+    public TicketDto getTicketById(Long id) {
+        Ticket t = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket with id " + id + " not found"));
+        return toDto(t);
     }
 
-    // Creates and saves a new ticket
-    public Ticket createTicket(Ticket ticket) {
-        return ticketRepository.save(ticket);
+    /** Accepts a request‐DTO, persists, returns DTO */
+    public TicketDto createTicket(TicketRequest req) {
+        // look up the Event entity; throws 404 if bad ID
+        Event ev = eventRepository.findById(req.getEventId())
+                .orElseThrow(() -> new ResourceNotFoundException("Event with id " + req.getEventId() + " not found"));
+
+        Ticket t = new Ticket();
+        t.setEvent(ev);
+        t.setSeatNumber(req.getSeatNumber());
+        t.setTicketType(req.getTicketType());
+        t.setBuyerName(req.getBuyerName());
+
+        Ticket saved = ticketRepository.save(t);
+        return toDto(saved);
     }
 
-    // Updates an existing ticket if found
-    public Ticket updateTicket(Long id, Ticket updatedData) {
-        return ticketRepository.findById(id).map(t -> {
-            t.setBuyerName(updatedData.getBuyerName());
-            t.setTicketType(updatedData.getTicketType());
-            t.setSeatNumber(updatedData.getSeatNumber());
-            return ticketRepository.save(t);
-        }).orElseThrow(() -> new ResourceNotFoundException("Ticket with id " + id + " not found"));
+    /** Updates via request‐DTO */
+    public TicketDto updateTicket(Long id, TicketRequest req) {
+        Ticket t = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket with id " + id + " not found"));
+
+        if (req.getEventId() != null) {
+            Event ev = eventRepository.findById(req.getEventId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Event with id " + req.getEventId() + " not found"));
+            t.setEvent(ev);
+        }
+        t.setSeatNumber(req.getSeatNumber());
+        t.setTicketType(req.getTicketType());
+        t.setBuyerName(req.getBuyerName());
+
+        Ticket saved = ticketRepository.save(t);
+        return toDto(saved);
+    }
+
+    private TicketDto toDto(Ticket t) {
+        return new TicketDto(
+                t.getId(),
+                t.getEvent().getId(),
+                t.getSeatNumber(),
+                t.getTicketType(),
+                t.getBuyerName()
+        );
     }
 }

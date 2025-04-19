@@ -1,16 +1,21 @@
 package com.example.concertManagement_Server.service;
 
+import com.example.concertManagement_Server.dto.TicketDto;
+import com.example.concertManagement_Server.dto.TicketRequest;
 import com.example.concertManagement_Server.exception.ResourceNotFoundException;
+import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Ticket;
+import com.example.concertManagement_Server.repository.EventRepository;
 import com.example.concertManagement_Server.repository.TicketRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -19,20 +24,27 @@ public class TicketServiceTest {
     @Mock
     private TicketRepository ticketRepository;
 
+    @Mock
+    private EventRepository eventRepository;
+
     @InjectMocks
     private TicketService ticketService;
 
     @Test
     void testGetTicketById_Found() {
-        Ticket mockTicket = new Ticket();
-        mockTicket.setId(1L);
-        mockTicket.setBuyerName("John Doe");
+        Ticket entity = new Ticket();
+        entity.setId(1L);
+        Event event = new Event(); event.setId(2L);
+        entity.setEvent(event);
+        entity.setBuyerName("John Doe");
 
-        when(ticketRepository.findById(1L)).thenReturn(Optional.of(mockTicket));
+        when(ticketRepository.findById(1L)).thenReturn(Optional.of(entity));
 
-        Ticket result = ticketService.getTicketById(1L);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("John Doe", result.getBuyerName());
+        TicketDto dto = ticketService.getTicketById(1L);
+        assertNotNull(dto);
+        assertEquals(1L, dto.getId());
+        assertEquals(2L, dto.getEventId());
+        assertEquals("John Doe", dto.getBuyerName());
         verify(ticketRepository).findById(1L);
     }
 
@@ -40,53 +52,59 @@ public class TicketServiceTest {
     void testGetTicketById_NotFound() {
         when(ticketRepository.findById(999L)).thenReturn(Optional.empty());
 
-        ResourceNotFoundException thrown = Assertions.assertThrows(
+        ResourceNotFoundException ex = assertThrows(
                 ResourceNotFoundException.class,
-                () -> ticketService.getTicketById(999L),
-                "Expected exception when ticket is not found"
+                () -> ticketService.getTicketById(999L)
         );
-        Assertions.assertEquals("Ticket with id 999 not found", thrown.getMessage());
+        assertEquals("Ticket with id 999 not found", ex.getMessage());
         verify(ticketRepository).findById(999L);
     }
 
     @Test
     void testCreateTicket() {
-        Ticket newTicket = new Ticket();
-        newTicket.setBuyerName("Mark");
-        newTicket.setTicketType("VIP");
+        TicketRequest req = new TicketRequest(3L, "C3", "VIP", "Mark");
+        Event event = new Event(); event.setId(3L);
+        Ticket toSave = new Ticket();
+        toSave.setEvent(event);
+        toSave.setSeatNumber(req.getSeatNumber());
+        toSave.setTicketType(req.getTicketType());
+        toSave.setBuyerName(req.getBuyerName());
 
-        Ticket savedTicket = new Ticket();
-        savedTicket.setId(200L);
-        savedTicket.setBuyerName("Mark");
-        savedTicket.setTicketType("VIP");
+        Ticket saved = new Ticket();
+        saved.setId(200L);
+        saved.setEvent(event);
+        saved.setSeatNumber("C3");
+        saved.setTicketType("VIP");
+        saved.setBuyerName("Mark");
 
-        when(ticketRepository.save(newTicket)).thenReturn(savedTicket);
+        when(eventRepository.findById(3L)).thenReturn(Optional.of(event));
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(saved);
 
-        Ticket result = ticketService.createTicket(newTicket);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(200L, result.getId());
-        Assertions.assertEquals("VIP", result.getTicketType());
-        verify(ticketRepository).save(newTicket);
+        TicketDto dto = ticketService.createTicket(req);
+        assertNotNull(dto);
+        assertEquals(200L, dto.getId());
+        assertEquals("C3", dto.getSeatNumber());
+        assertEquals("Mark", dto.getBuyerName());
+
+        verify(eventRepository).findById(3L);
+        verify(ticketRepository).save(any(Ticket.class));
     }
 
     @Test
     void testUpdateTicket_Found() {
-        Ticket existing = new Ticket();
-        existing.setId(5L);
-        existing.setBuyerName("Steve");
-        existing.setTicketType("GA");
+        Event event = new Event(); event.setId(4L);
+        Ticket existing = new Ticket(); existing.setId(5L); existing.setEvent(event);
+        existing.setBuyerName("Steve"); existing.setTicketType("GA"); existing.setSeatNumber("D5");
 
+        TicketRequest req = new TicketRequest(null, "E6", "VIP", "Steven");
         when(ticketRepository.findById(5L)).thenReturn(Optional.of(existing));
-        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Ticket updatedData = new Ticket();
-        updatedData.setBuyerName("Steven");
-        updatedData.setTicketType("VIP");
-
-        Ticket result = ticketService.updateTicket(5L, updatedData);
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals("Steven", result.getBuyerName());
-        Assertions.assertEquals("VIP", result.getTicketType());
+        TicketDto dto = ticketService.updateTicket(5L, req);
+        assertEquals(5L, dto.getId());
+        assertEquals("E6", dto.getSeatNumber());
+        assertEquals("VIP", dto.getTicketType());
+        assertEquals("Steven", dto.getBuyerName());
 
         verify(ticketRepository).findById(5L);
         verify(ticketRepository).save(any(Ticket.class));
@@ -95,19 +113,15 @@ public class TicketServiceTest {
     @Test
     void testUpdateTicket_NotFound() {
         when(ticketRepository.findById(999L)).thenReturn(Optional.empty());
+        TicketRequest req = new TicketRequest(null, "F7", "GA", "Nobody");
 
-        Ticket updatedData = new Ticket();
-        updatedData.setBuyerName("Not Found");
-
-        ResourceNotFoundException thrown = Assertions.assertThrows(
+        ResourceNotFoundException ex = assertThrows(
                 ResourceNotFoundException.class,
-                () -> ticketService.updateTicket(999L, updatedData),
-                "Expected exception when updating nonexistent ticket"
+                () -> ticketService.updateTicket(999L, req)
         );
-        Assertions.assertEquals("Ticket with id 999 not found", thrown.getMessage());
-
+        assertEquals("Ticket with id 999 not found", ex.getMessage());
         verify(ticketRepository).findById(999L);
-        verify(ticketRepository, never()).save(any(Ticket.class));
+        verify(ticketRepository, never()).save(any());
     }
 }
 

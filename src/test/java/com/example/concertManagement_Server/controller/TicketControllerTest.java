@@ -1,10 +1,13 @@
 package com.example.concertManagement_Server.controller;
 
-import com.example.concertManagement_Server.model.Ticket;
+import com.example.concertManagement_Server.dto.TicketDto;
+import com.example.concertManagement_Server.dto.TicketRequest;
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.service.TicketService;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
@@ -22,13 +25,11 @@ public class TicketControllerTest {
 
     @Test
     void testGetTicket_Found() {
-        Ticket mockTicket = new Ticket();
-        mockTicket.setId(1L);
-        mockTicket.setBuyerName("Alice");
+        TicketDto mockDto = new TicketDto(1L, 2L, "A1", "VIP", "Alice");
+        when(ticketService.getTicketById(1L)).thenReturn(mockDto);
 
-        when(ticketService.getTicketById(1L)).thenReturn(mockTicket);
+        ResponseEntity<TicketDto> response = ticketController.getTicket(1L);
 
-        ResponseEntity<Ticket> response = ticketController.getTicket(1L);
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
         assertEquals("Alice", response.getBody().getBuyerName());
@@ -37,9 +38,11 @@ public class TicketControllerTest {
 
     @Test
     void testGetTicket_NotFound() {
-        when(ticketService.getTicketById(999L)).thenReturn(null);
+        when(ticketService.getTicketById(999L))
+                .thenThrow(new ResourceNotFoundException("Ticket with id 999 not found"));
 
-        ResponseEntity<Ticket> response = ticketController.getTicket(999L);
+        ResponseEntity<TicketDto> response = ticketController.getTicket(999L);
+
         assertEquals(404, response.getStatusCodeValue());
         assertNull(response.getBody());
         verify(ticketService).getTicketById(999L);
@@ -47,51 +50,42 @@ public class TicketControllerTest {
 
     @Test
     void testCreateTicket() {
-        Ticket newTicket = new Ticket();
-        newTicket.setBuyerName("Bob");
+        TicketRequest req = new TicketRequest(2L, "B2", "GA", "Bob");
+        TicketDto createdDto = new TicketDto(10L, 2L, "B2", "GA", "Bob");
+        when(ticketService.createTicket(req)).thenReturn(createdDto);
 
-        Ticket savedTicket = new Ticket();
-        savedTicket.setId(10L);
-        savedTicket.setBuyerName("Bob");
+        ResponseEntity<TicketDto> response = ticketController.createTicket(req);
 
-        when(ticketService.createTicket(newTicket)).thenReturn(savedTicket);
-
-        ResponseEntity<Ticket> response = ticketController.createTicket(newTicket);
         assertEquals(201, response.getStatusCodeValue());
         assertNotNull(response.getBody());
         assertEquals(10L, response.getBody().getId());
-
-        verify(ticketService).createTicket(newTicket);
+        verify(ticketService).createTicket(req);
     }
 
     @Test
     void testUpdateTicket_Found() {
-        Ticket updatedData = new Ticket();
-        updatedData.setBuyerName("Bobby");
+        TicketRequest req = new TicketRequest(null, "C3", "VIP", "Bobby");
+        TicketDto updatedDto = new TicketDto(5L, null, "C3", "VIP", "Bobby");
+        when(ticketService.updateTicket(5L, req)).thenReturn(updatedDto);
 
-        Ticket updatedTicket = new Ticket();
-        updatedTicket.setId(5L);
-        updatedTicket.setBuyerName("Bobby");
+        ResponseEntity<TicketDto> response = ticketController.updateTicket(5L, req);
 
-        when(ticketService.updateTicket(5L, updatedData)).thenReturn(updatedTicket);
-
-        ResponseEntity<Ticket> response = ticketController.updateTicket(5L, updatedData);
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
         assertEquals("Bobby", response.getBody().getBuyerName());
-        verify(ticketService).updateTicket(5L, updatedData);
+        verify(ticketService).updateTicket(5L, req);
     }
 
     @Test
     void testUpdateTicket_NotFound() {
-        Ticket updatedData = new Ticket();
-        updatedData.setBuyerName("NoOne");
+        TicketRequest req = new TicketRequest(null, "X9", "GA", "Nobody");
+        when(ticketService.updateTicket(eq(999L), any(TicketRequest.class)))
+                .thenThrow(new ResourceNotFoundException("Ticket with id 999 not found"));
 
-        when(ticketService.updateTicket(999L, updatedData)).thenReturn(null);
+        ResponseEntity<TicketDto> response = ticketController.updateTicket(999L, req);
 
-        ResponseEntity<Ticket> response = ticketController.updateTicket(999L, updatedData);
         assertEquals(404, response.getStatusCodeValue());
         assertNull(response.getBody());
-        verify(ticketService).updateTicket(999L, updatedData);
+        verify(ticketService).updateTicket(999L, req);
     }
 }
