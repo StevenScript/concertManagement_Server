@@ -23,6 +23,7 @@ public class TicketControllerTest {
     @InjectMocks
     private TicketController ticketController;
 
+    /** Verifies getTicket(id) returns HTTP 200 and the correct DTO when found. */
     @Test
     void testGetTicket_Found() {
         TicketDto mockDto = new TicketDto(1L, 2L, "A1", "VIP", "Alice");
@@ -36,6 +37,7 @@ public class TicketControllerTest {
         verify(ticketService).getTicketById(1L);
     }
 
+    /** Confirms getTicket(id) returns HTTP 404 when not found. */
     @Test
     void testGetTicket_NotFound() {
         when(ticketService.getTicketById(999L))
@@ -48,6 +50,7 @@ public class TicketControllerTest {
         verify(ticketService).getTicketById(999L);
     }
 
+    /** Verifies createTicket returns HTTP 201 and the created DTO. */
     @Test
     void testCreateTicket() {
         TicketRequest req = new TicketRequest(2L, "B2", "GA", "Bob");
@@ -62,6 +65,7 @@ public class TicketControllerTest {
         verify(ticketService).createTicket(req);
     }
 
+    /** Verifies updateTicket returns HTTP 200 when found. */
     @Test
     void testUpdateTicket_Found() {
         TicketRequest req = new TicketRequest(null, "C3", "VIP", "Bobby");
@@ -76,6 +80,7 @@ public class TicketControllerTest {
         verify(ticketService).updateTicket(5L, req);
     }
 
+    /** Confirms updateTicket returns HTTP 404 when not found. */
     @Test
     void testUpdateTicket_NotFound() {
         TicketRequest req = new TicketRequest(null, "X9", "GA", "Nobody");

@@ -39,6 +39,7 @@ public class VenueControllerTest {
     @InjectMocks
     private VenueController venueController;
 
+    /** Verifies getVenue(id) returns HTTP 200 and the correct DTO. */
     @Test
     void testGetVenue_Found() {
         Venue entity = new Venue(); entity.setId(100L); entity.setName("Test");
@@ -51,6 +52,7 @@ public class VenueControllerTest {
         assertEquals(dto, resp.getBody());
     }
 
+    /** Ensures listAllVenues returns HTTP 200 with all mapped DTOs. */
     @Test
     void testListAllVenues() {
         Venue v = new Venue(); v.setId(1L); v.setName("One");
@@ -63,6 +65,7 @@ public class VenueControllerTest {
         assertEquals(List.of(d), resp.getBody());
     }
 
+    /** Verifies createVenue returns HTTP 201 and the created DTO. */
     @Test
     void testCreateVenue() {
         VenueRequest req = new VenueRequest("Name","Loc",123);
@@ -76,6 +79,7 @@ public class VenueControllerTest {
         assertEquals(dto, resp.getBody());
     }
 
+    /** Verifies updateVenue returns HTTP 200 and the updated DTO. */
     @Test
     void testUpdateVenue() {
         VenueRequest req = new VenueRequest("Up","Loc2",200);
@@ -89,6 +93,7 @@ public class VenueControllerTest {
         assertEquals(dto, resp.getBody());
     }
 
+    /** Checks getArtistsForVenue returns HTTP 200 with the artist list. */
     @Test
     void testGetArtistsForVenue() {
         Artist mockArtist = new Artist();
@@ -107,6 +112,7 @@ public class VenueControllerTest {
         verify(artistService).listAllArtistsForVenue(5L);
     }
 
+    /** Ensures getUpcomingEventsForVenue returns HTTP 200 with filtered events. */
     @Test
     void testGetUpcomingEventsForVenue() {
         // Prepare a venue ID and a list of upcoming events

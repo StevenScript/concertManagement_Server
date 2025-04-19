@@ -27,6 +27,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * Unit tests for EventController covering CRUD and association endpoints.
+ */
 @ExtendWith(MockitoExtension.class)
 public class EventControllerTest {
 
@@ -42,6 +45,9 @@ public class EventControllerTest {
     @InjectMocks
     private EventController eventController;
 
+    /**
+     * Ensures getEvent(id) returns HTTP 200 and the correct DTO when found.
+     */
     @Test
     void testGetEventDtoFound() {
         // Given
@@ -61,6 +67,7 @@ public class EventControllerTest {
         assertEquals(dto, resp.getBody());
     }
 
+    /** Confirms missing event throws ResourceNotFoundException. */
     @Test
     void testGetEventDtoNotFound() {
         given(eventService.getEventById(999L))
@@ -70,6 +77,10 @@ public class EventControllerTest {
                 () -> eventController.getEvent(999L));
     }
 
+    /**
+     * Verifies createEvent pipeline:
+     * mapping → saving → mapping back → HTTP 201.
+     */
     @Test
     void testCreateEventDtoPipeline() {
         // Given
@@ -98,6 +109,7 @@ public class EventControllerTest {
         assertEquals(dto, resp.getBody());
     }
 
+    /** Checks both tickets list and count endpoints return correct data. */
     @Test
     void testGetTicketsAndCount() {
         // Tickets
@@ -114,6 +126,9 @@ public class EventControllerTest {
         assertEquals(150L, cr.getBody());
     }
 
+    /**
+     * Verifies getAll and getUpcoming return mapped DTO lists.
+     */
     @Test
     void testGetAllAndUpcomingEventsDtoPipeline() {
         Event e = new Event(); e.setId(1L);
@@ -131,6 +146,9 @@ public class EventControllerTest {
         assertEquals(d, up.get(0));
     }
 
+    /**
+     * Tests listing events by artist and adding an artist to an event.
+     */
     @Test
     void testGetEventsByArtistAndAddArtistPipeline() {
         Event e = new Event(); e.setId(2L);

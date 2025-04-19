@@ -15,6 +15,10 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Integration tests for AuthController, verifying JSON request/response
+ * for both registration and login endpoints.
+ */
 class AuthControllerTest {
 
     private MockMvc mockMvc;
@@ -28,6 +32,7 @@ class AuthControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
+    /** Verifies POST /api/register returns a valid AuthResponse JSON. */
     @Test
     void registerReturnsAuthResponse() throws Exception {
         RegisterRequest req = new RegisterRequest("alice", "alice@example.com", "password", "USER");
@@ -44,6 +49,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.token").value("jwt-123"));
     }
 
+    /** Verifies POST /api/login returns a valid AuthResponse JSON. */
     @Test
     void loginReturnsAuthResponse() throws Exception {
         LoginRequest req = new LoginRequest("bob", "secret");

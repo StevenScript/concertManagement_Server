@@ -1,8 +1,7 @@
-# Building the Java Server (Spring Boot REST API)
-## Author - Steven Norris
-## Date - February 28th, 2025 
+# Concert Management Backend
 
-# Concert Management Server
+**Author:** Steven Norris  
+**Date:** April 19, 2025
 
 ## Table of Contents
 
@@ -10,72 +9,157 @@
 2. [Features](#features)
 3. [Architecture](#architecture)
 4. [Data Model](#data-model)
-5. [API Endpoints](#api-endpoints)
-    - [Artist Endpoints](#artist-endpoints)
-    - [Venue Endpoints](#venue-endpoints)
-    - [Event Endpoints](#event-endpoints)
-    - [Ticket Endpoints](#ticket-endpoints)
+5. [Getting Started](#getting-started)
+6. [API Endpoints](#api-endpoints)
+   - [Authentication](#authentication)
+   - [Artists](#artists)
+   - [Venues](#venues)
+   - [Events](#events)
+   - [Tickets](#tickets)
+7. [Error Handling](#error-handling)
+8. [Security & CORS](#security--cors)
+
+---
 
 ## Introduction
 
-The Concert Management Server is a Java-based application developed to manage concerts, artists, venues, events, and ticketing. Built using Spring Boot, it exposes a RESTful API over HTTP and interacts with a MySQL relational database to perform various operations related to concert management.
+The **Concert Management Backend** is a Spring Boot application that exposes a RESTful API for managing concerts, artists, venues, events, tickets, and user accounts. It connects to a relational database (e.g., MySQL) and supports JWT‑based authentication, making it suitable for powering a React frontend.
 
 ## Features
 
-- **CRUD Operations**: Manage artists, venues, events, and tickets through standard Create, Read, Update, and Delete operations.
-- **Custom Queries**: Retrieve specific information such as events for a particular artist, venues hosting certain events, and more.
-- **Client Integration**: Designed to work seamlessly with a separate Java console client that communicates via HTTP with the API.
+- **User Authentication:** Register and login with JWT issuance.
+- **Artists:** Create, read, update, list events, ticket counts, and venues for artists.
+- **Venues:** Create, read, update, list scheduled artists, upcoming events.
+- **Events:** CRUD operations, upcoming events, assign artists, list tickets, ticket counts.
+- **Tickets:** Create, read, update tickets by event.
+- **Global Exception Handling:** Consistent JSON error responses.
+- **Security:** CORS enabled; CSRF disabled; supports HTTP Basic or JWT.
 
 ## Architecture
 
-The application follows a layered architecture:
+This project follows a layered architecture:
 
-1. **Controller Layer**: Handles HTTP requests and responses.
-2. **Service Layer**: Contains business logic and interacts with the repository layer.
-3. **Repository Layer**: Interfaces with the MySQL database using Spring Data JPA.
+1. **Controller Layer:** Defines REST controllers handling HTTP requests and responses.
+2. **Service Layer:** Contains business logic, orchestrates repository calls, and applies rules.
+3. **Repository Layer:** Interfaces with the database using Spring Data JPA.
+4. **Model & DTOs:** JPA entities represent tables; DTOs and request objects decouple API payloads.
+5. **Mapper Components:** Convert between entities and DTOs.
 
 ## Data Model
 
-The primary entities and their relationships are as follows:
+- **Artist**:
+   - `id`, `stageName`, `genre`, `membersCount`, `homeCity`
+   - Many-to-many with Event
 
-- **Artist**: Represents performers and has a many-to-many relationship with events.
-- **Venue**: Represents locations where events are held and has a one-to-many relationship with events.
-- **Event**: Represents concerts or performances and has one-to-many relationships with tickets.
-- **Ticket**: Represents tickets for events.
+- **Venue**:
+   - `id`, `name`, `location`, `capacity`
+   - One-to-many with Event
+
+- **Event**:
+   - `id`, `eventDate`, `ticketPrice`, `availableTickets`
+   - Many-to-one with Venue
+   - Many-to-many with Artist
+   - One-to-many with Ticket
+
+- **Ticket**:
+   - `id`, `seatNumber`, `ticketType`, `buyerName`
+   - Many-to-one with Event
+
+- **User**:
+   - `id`, `username`, `password`, `role`, `email`
+
+## Getting Started
+
+### Prerequisites
+
+- Java 17 or later
+- Maven or Gradle
+- MySQL (or other supported datasource)
+
+### Build & Run
+
+1. Clone the repository.
+2. Configure `application.properties` with your datasource and JWT properties.
+3. Build and run:
+   ```bash
+   mvn spring-boot:run
+   # or
+   ./gradlew bootRun
+   ```
+4. Access the API at `http://localhost:8080`.
 
 ## API Endpoints
 
-The REST API provides the following endpoints:
+### Authentication
 
-### Artist Endpoints
+| Method | URI             | Description                    |
+|--------|-----------------|--------------------------------|
+| POST   | `/api/register` | Register a new user            |
+| POST   | `/api/login`    | Authenticate and receive JWT   |
 
-- `GET /artists`: Retrieve a list of all artists.
-- `POST /artists`: Create a new artist.
-- `GET /artists/{id}`: Retrieve details of a specific artist by ID.
-- `PUT /artists/{id}`: Update an existing artist by ID.
-- `GET /artists/{id}/events`: Retrieve all events associated with a specific artist.
+### Artists
 
-### Venue Endpoints
+| Method | URI                                 | Description                               |
+|--------|-------------------------------------|-------------------------------------------|
+| GET    | `/artists`                          | List all artists                          |
+| GET    | `/artists/{id}`                     | Get artist by ID                          |
+| POST   | `/artists`                          | Create artist                             |
+| PUT    | `/artists/{id}`                     | Update artist                             |
+| GET    | `/artists/{id}/events`              | List events for an artist                 |
+| GET    | `/artists/{id}/ticket-count`        | Total tickets sold for an artist          |
+| GET    | `/artists/{id}/venues`              | List venues where an artist performs      |
 
-- `GET /venues`: Retrieve a list of all venues.
-- `POST /venues`: Create a new venue.
-- `GET /venues/{id}`: Retrieve details of a specific venue by ID.
-- `PUT /venues/{id}`: Update an existing venue by ID.
-- `GET /venues/{id}/artists`: Retrieve all artists associated with a specific venue.
+### Venues
 
-### Event Endpoints
+| Method | URI                                     | Description                                 |
+|--------|-----------------------------------------|---------------------------------------------|
+| GET    | `/venues`                               | List all venues                             |
+| GET    | `/venues/{id}`                          | Get venue by ID                             |
+| POST   | `/venues`                               | Create venue                                |
+| PUT    | `/venues/{id}`                          | Update venue                                |
+| GET    | `/venues/{id}/artists`                  | List artists scheduled at a venue           |
+| GET    | `/venues/{id}/upcoming-events`          | List upcoming events at a venue             |
 
-- `GET /events`: Retrieve a list of all events.
-- `POST /events`: Create a new event.
-- `GET /events/{id}`: Retrieve details of a specific event by ID.
-- `PUT /events/{id}`: Update an existing event by ID.
-- `GET /events/upcoming`: Retrieve a list of upcoming events.
-- `GET /events/artist/{artistId}`: Retrieve all events associated with a specific artist.
-- `POST /events/{eventId}/artists/{artistId}`: Add an artist to an event.
+### Events
 
-### Ticket Endpoints
+| Method | URI                                          | Description                                  |
+|--------|----------------------------------------------|----------------------------------------------|
+| GET    | `/events`                                    | List all events                              |
+| GET    | `/events/upcoming`                           | List events after today                      |
+| GET    | `/events/{id}`                               | Get event by ID                              |
+| POST   | `/events`                                    | Create event                                 |
+| PUT    | `/events/{id}`                               | Update event                                 |
+| GET    | `/events/artist/{artistId}`                  | List events by artist                        |
+| POST   | `/events/{eventId}/artists/{artistId}`       | Add artist to an event                       |
+| GET    | `/events/{id}/tickets`                      | List tickets for an event                    |
+| GET    | `/events/{id}/ticket-count`                 | Count tickets sold for an event              |
 
-- `GET /tickets`: Retrieve a list of all tickets.
-- `POST /tickets`: Create a new ticket.
-- `GET /tickets/{id}`: Retrieve details of a specific ticket by ID.
-- `PUT /tickets/{id}`: Update an existing ticket by ID.
+### Tickets
+
+| Method | URI                  | Description                  |
+|--------|----------------------|------------------------------|
+| GET    | `/tickets/{id}`      | Get ticket by ID             |
+| POST   | `/tickets`           | Create ticket                |
+| PUT    | `/tickets/{id}`      | Update ticket                |
+
+## Error Handling
+
+All errors return HTTP status codes with a JSON body:
+```json
+{
+  "timestamp": "2025-04-19T12:34:56.789",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Detailed error message"
+}
+```
+
+## Security & CORS
+
+- **CORS**: `*` origins allowed; GET, POST, PUT, DELETE, OPTIONS
+- **CSRF**: Disabled
+- **Auth**: HTTP Basic or JWT
+
+---
+*This documentation reflects the upgraded project structure and endpoints.*
+
