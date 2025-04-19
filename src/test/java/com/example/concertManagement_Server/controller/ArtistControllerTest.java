@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for {@link ArtistController}, verifying request→entity→DTO mapping
  * and correct HTTP responses.
  */
+@ExtendWith(MockitoExtension.class)
 public class ArtistControllerTest {
 
     @Mock
