@@ -32,7 +32,7 @@ public class Event {
     private Venue venue;
 
     // Many-to-many with Artist
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "event_artists",
             joinColumns = @JoinColumn(name = "event_id"),
