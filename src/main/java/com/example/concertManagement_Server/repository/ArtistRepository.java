@@ -7,10 +7,19 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
+/**
+ * Repository for Artist entities, providing CRUD operations
+ * and a custom query to find artists by venue.
+ */
 @Repository
 public interface ArtistRepository extends JpaRepository<Artist, Long> {
 
-    // Custom query to find artists performing at a specific venue
-    @Query("SELECT distinct a FROM Artist a JOIN a.events e WHERE e.venue.id = :venueId")
+    /**
+     * Finds distinct artists who are scheduled to perform at the given venue.
+     *
+     * @param venueId the ID of the venue
+     * @return list of artists performing at that venue
+     */
+    @Query("SELECT DISTINCT a FROM Artist a JOIN a.events e WHERE e.venue.id = :venueId")
     List<Artist> findArtistsByVenueId(Long venueId);
 }

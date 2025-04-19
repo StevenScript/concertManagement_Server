@@ -6,10 +6,25 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Repository for Ticket entities, handling retrieval and aggregate counts.
+ */
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
+    /**
+     * Retrieves all tickets sold for a specific event.
+     *
+     * @param eventId the ID of the event
+     * @return list of tickets
+     */
     List<Ticket> findByEventId(Long eventId);
-    Long countByEventId(Long eventId);
 
+    /**
+     * Counts the total tickets sold for a specific event.
+     *
+     * @param eventId the ID of the event
+     * @return number of tickets
+     */
+    Long countByEventId(Long eventId);
 }

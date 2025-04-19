@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Payload for creating or updating a venue.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

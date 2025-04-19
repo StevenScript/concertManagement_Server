@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 /**
- * Request payload for creating or updating an Event.
+ * Payload for creating or updating an event.
  */
 @Data
 @NoArgsConstructor

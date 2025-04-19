@@ -17,6 +17,9 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
+    /**
+     * Retrieves a ticket by ID, responds 404 if not found.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<TicketDto> getTicket(@PathVariable Long id) {
         try {
@@ -27,15 +30,22 @@ public class TicketController {
         }
     }
 
+    /**
+     * Creates a new ticket and returns it with 201 status.
+     */
     @PostMapping
     public ResponseEntity<TicketDto> createTicket(@RequestBody TicketRequest req) {
         TicketDto dto = ticketService.createTicket(req);
         return ResponseEntity.status(201).body(dto);
     }
 
+    /**
+     * Updates an existing ticket, responds 404 if not found.
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<TicketDto> updateTicket(@PathVariable Long id,
-                                                  @RequestBody TicketRequest req) {
+    public ResponseEntity<TicketDto> updateTicket(
+            @PathVariable Long id,
+            @RequestBody TicketRequest req) {
         try {
             TicketDto dto = ticketService.updateTicket(id, req);
             return ResponseEntity.ok(dto);

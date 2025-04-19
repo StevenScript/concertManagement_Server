@@ -10,38 +10,67 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Maps between Event entity and its DTO/request representations.
+ */
 @Component
 public class EventMapper {
 
-    public EventDto toDto(Event e) {
+    /**
+     * Converts an Event entity to its DTO.
+     *
+     * @param event the source Event entity
+     * @return a new EventDto containing event details
+     */
+    public EventDto toDto(Event event) {
         return new EventDto(
-                e.getId(),
-                e.getEventDate(),
-                e.getTicketPrice(),
-                e.getAvailableTickets(),
-                e.getVenue() != null ? e.getVenue().getId() : null,
-                e.getArtists() != null ? e.getArtists().stream()
+                event.getId(),
+                event.getEventDate(),
+                event.getTicketPrice(),
+                event.getAvailableTickets(),
+                event.getVenue() != null ? event.getVenue().getId() : null,
+                event.getArtists() != null
+                        ? event.getArtists().stream()
                         .map(Artist::getId)
                         .collect(Collectors.toSet())
-                        : null
+                        : Set.of()
         );
     }
 
+    /**
+     * Creates a new Event entity from a request DTO, venue, and artist set.
+     *
+     * @param req     the EventRequest with input data
+     * @param venue   the Venue entity to associate
+     * @param artists the set of Artist entities to associate
+     * @return a fresh Event entity populated with provided values
+     */
     public Event toEntity(EventRequest req, Venue venue, Set<Artist> artists) {
-        Event e = new Event();
-        e.setEventDate(req.getEventDate());
-        e.setTicketPrice(req.getTicketPrice());
-        e.setAvailableTickets(req.getAvailableTickets());
-        e.setVenue(venue);
-        e.setArtists(artists);
-        return e;
+        Event event = new Event();
+        event.setEventDate(req.getEventDate());
+        event.setTicketPrice(req.getTicketPrice());
+        event.setAvailableTickets(req.getAvailableTickets());
+        event.setVenue(venue);
+        event.setArtists(artists);
+        return event;
     }
 
-    public void updateEntity(EventRequest req, Event e, Venue venue, Set<Artist> artists) {
-        e.setEventDate(req.getEventDate());
-        e.setTicketPrice(req.getTicketPrice());
-        e.setAvailableTickets(req.getAvailableTickets());
-        e.setVenue(venue);
-        e.setArtists(artists);
+    /**
+     * Updates an existing Event entity’s fields from a request DTO.
+     *
+     * @param req     the EventRequest with updated data
+     * @param event   the existing Event entity to modify
+     * @param venue   the Venue to set
+     * @param artists the Artist set to set
+     */
+    public void updateEntity(EventRequest req,
+                             Event event,
+                             Venue venue,
+                             Set<Artist> artists) {
+        event.setEventDate(req.getEventDate());
+        event.setTicketPrice(req.getTicketPrice());
+        event.setAvailableTickets(req.getAvailableTickets());
+        event.setVenue(venue);
+        event.setArtists(artists);
     }
 }

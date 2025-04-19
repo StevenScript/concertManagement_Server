@@ -13,6 +13,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+/**
+ * Filters incoming HTTP requests to:
+ * 1. Extract and validate the JWT from the Authorization header.
+ * 2. Populate the SecurityContext with an authenticated principal if the token is valid.
+ */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -30,6 +35,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
+        // If a Bearer token is present, validate it and set authentication
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
@@ -50,6 +56,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
 
+        // Continue the filter chain regardless of authentication outcome
         filterChain.doFilter(request, response);
     }
 }

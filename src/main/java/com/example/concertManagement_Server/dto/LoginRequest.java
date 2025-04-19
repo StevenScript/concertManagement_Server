@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Payload for user login requests.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

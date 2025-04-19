@@ -7,6 +7,9 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a venue where events are hosted.
+ */
 @Entity
 @Table(name = "venues")
 @Data
@@ -14,16 +17,32 @@ import java.util.List;
 @AllArgsConstructor
 public class Venue {
 
+    /**
+     * Unique identifier for the venue.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Primary key for the venue
+    private Long id;
 
+    /**
+     * Name of the venue.
+     */
     private String name;
-    private String location; // City where the venue is located
+
+    /**
+     * City where the venue is located.
+     */
+    private String location;
+
+    /**
+     * Maximum audience capacity of the venue.
+     */
     private Integer capacity;
 
-    // One venue can have multiple events
+    /**
+     * Events scheduled at this venue.
+     */
     @OneToMany(mappedBy = "venue")
-    @JsonIgnoreProperties("venue") // Prevent infinite recursion when serializing events
+    @JsonIgnoreProperties("venue")
     private List<Event> events = new ArrayList<>();
 }

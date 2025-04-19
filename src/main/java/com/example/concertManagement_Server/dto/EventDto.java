@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 /**
- * View object for Event, exposing only safe fields.
+ * DTO for exposing event details to clients.
  */
 @Data
 @NoArgsConstructor

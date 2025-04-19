@@ -16,43 +16,55 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    /**
+     * Configures HTTP security, including CORS, CSRF, request authorization, and basic auth.
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())           // enable CORS
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // auth endpoints stays open
-                        .requestMatchers("/api/**").permitAll()
-                        // actuator stays open
-                        .requestMatchers("/actuator/**").permitAll()
-                        // these domain endpoints are now public
-                        .requestMatchers("/venues/**",
+                        .requestMatchers("/api/**", "/actuator/**").permitAll()
+                        .requestMatchers(
+                                "/venues/**",
                                 "/artists/**",
                                 "/events/**",
-                                "/tickets/**").permitAll()
-                        // everything else needs authentication
+                                "/tickets/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());     // or replace with your JWT filter
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
 
+    /**
+     * Provides BCrypt-based password encoding for credential storage.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Applies CORS configuration allowing all origins, standard HTTP methods,
+     * and credentials support for API endpoints.
+     */
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization","Content-Type"));
+        config.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+        config.setAllowedHeaders(List.of(
+                "Authorization", "Content-Type"
+        ));
         config.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
-        src.registerCorsConfiguration("/**", config);
-        return new CorsFilter(src);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
     }
 }

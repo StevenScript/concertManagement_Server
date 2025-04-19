@@ -9,6 +9,9 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Represents an event, including date, pricing, venue, and participating artists.
+ */
 @Entity
 @Table(name = "events")
 @Data
@@ -17,21 +20,39 @@ import java.util.Set;
 @EqualsAndHashCode(exclude = "artists")
 public class Event {
 
+    /**
+     * Unique identifier for the event.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Date of the event.
+     */
     private LocalDate eventDate;
+
+    /**
+     * Ticket price for the event.
+     */
     private Double ticketPrice;
+
+    /**
+     * Number of tickets available for sale.
+     */
     private Integer availableTickets;
 
-    // Many events -> one venue
+    /**
+     * Venue where the event takes place.
+     */
     @ManyToOne
     @JoinColumn(name = "venue_id")
     @JsonIgnoreProperties("events")
     private Venue venue;
 
-    // Many-to-many with Artist
+    /**
+     * Artists participating in the event.
+     */
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "event_artists",

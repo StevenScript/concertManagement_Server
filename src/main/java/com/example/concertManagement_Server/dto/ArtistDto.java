@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * View object for Artist, exposing only safe fields.
+ * DTO for exposing artist data to clients.
  */
 @Data
 @NoArgsConstructor

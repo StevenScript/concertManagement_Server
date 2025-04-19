@@ -7,7 +7,6 @@ import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.service.ArtistService;
 import com.example.concertManagement_Server.service.VenueService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,40 +29,64 @@ public class VenueController {
         this.venueMapper = venueMapper;
     }
 
+    /**
+     * Retrieves all venues.
+     */
     @GetMapping
     public ResponseEntity<List<VenueDto>> listAllVenues() {
-        List<VenueDto> dtos = venueService.listAllVenues().stream()
+        var dtos = venueService.listAllVenues().stream()
                 .map(venueMapper::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
 
+    /**
+     * Retrieves a single venue by ID.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<VenueDto> getVenue(@PathVariable Long id) {
         VenueDto dto = venueMapper.toDto(venueService.getVenueById(id));
         return ResponseEntity.ok(dto);
     }
 
+    /**
+     * Creates a new venue.
+     */
     @PostMapping
     public ResponseEntity<VenueDto> createVenue(@RequestBody VenueRequest req) {
         var saved = venueService.createVenue(req);
-        return new ResponseEntity<>(venueMapper.toDto(saved), HttpStatus.CREATED);
+        return ResponseEntity.status(201).body(venueMapper.toDto(saved));
     }
 
+    /**
+     * Updates an existing venue.
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<VenueDto> updateVenue(@PathVariable Long id,
-                                                @RequestBody VenueRequest req) {
+    public ResponseEntity<VenueDto> updateVenue(
+            @PathVariable Long id,
+            @RequestBody VenueRequest req) {
         var updated = venueService.updateVenue(id, req);
         return ResponseEntity.ok(venueMapper.toDto(updated));
     }
 
+    /**
+     * Lists all artists scheduled for a venue.
+     */
     @GetMapping("/{id}/artists")
     public ResponseEntity<List<Artist>> getArtistsForVenue(@PathVariable Long id) {
-        return ResponseEntity.ok(artistService.listAllArtistsForVenue(id));
+        return ResponseEntity.ok(
+                artistService.listAllArtistsForVenue(id)
+        );
     }
 
+    /**
+     * Retrieves upcoming events for a venue.
+     */
     @GetMapping("/{id}/upcoming-events")
-    public ResponseEntity<List<Event>> getUpcomingEventsForVenue(@PathVariable Long id) {
-        return ResponseEntity.ok(venueService.findUpcomingEventsForVenue(id));
+    public ResponseEntity<List<Event>> getUpcomingEventsForVenue(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(
+                venueService.findUpcomingEventsForVenue(id)
+        );
     }
 }

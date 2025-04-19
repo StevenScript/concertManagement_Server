@@ -11,8 +11,13 @@ import com.example.concertManagement_Server.security.JwtTokenProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+/**
+ * Handles user registration and authentication,
+ * including password encoding and JWT issuance.
+ */
 @Service
 public class AuthService {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -25,6 +30,10 @@ public class AuthService {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    /**
+     * Registers a new user and returns an AuthResponse with JWT.
+     * @throws UsernameAlreadyExistsException if the username is taken
+     */
     public AuthResponse register(RegisterRequest req) {
         if (userRepository.existsByUsername(req.getUsername())) {
             throw new UsernameAlreadyExistsException("Username already taken");
@@ -43,14 +52,22 @@ public class AuthService {
         return new AuthResponse(u.getUsername(), u.getEmail(), u.getRole(), token);
     }
 
+    /**
+     * Convenience overload using raw credentials.
+     */
     public AuthResponse register(String username, String password, String email, String role) {
-        RegisterRequest dto = new RegisterRequest(username, email, password, role);
-        return register(dto);
+        return register(new RegisterRequest(username, email, password, role));
     }
 
+    /**
+     * Authenticates user credentials and returns JWT on success.
+     * @throws InvalidCredentialsException if authentication fails
+     */
     public AuthResponse login(LoginRequest req) {
         User u = userRepository.findByUsername(req.getUsername())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
+                .orElseThrow(() ->
+                        new InvalidCredentialsException("Invalid username or password")
+                );
 
         if (!passwordEncoder.matches(req.getPassword(), u.getPassword())) {
             throw new InvalidCredentialsException("Invalid username or password");
@@ -60,6 +77,9 @@ public class AuthService {
         return new AuthResponse(u.getUsername(), u.getEmail(), u.getRole(), token);
     }
 
+    /**
+     * Convenience overload using raw credentials.
+     */
     public AuthResponse login(String username, String password) {
         return login(new LoginRequest(username, password));
     }

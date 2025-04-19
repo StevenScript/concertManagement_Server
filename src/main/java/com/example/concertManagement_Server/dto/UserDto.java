@@ -5,8 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * A user view object—useful for sending back to clients without exposing
- * internal entity details like passwords or JPA annotations.
+ * DTO for exposing user information without sensitive data.
  */
 @Data
 @NoArgsConstructor

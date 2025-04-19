@@ -9,8 +9,12 @@ import com.example.concertManagement_Server.repository.EventRepository;
 import com.example.concertManagement_Server.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
+/**
+ * Manages ticket lifecycle: retrieval, creation, and updates.
+ */
 @Service
 public class TicketService {
+
     private final TicketRepository ticketRepository;
     private final EventRepository eventRepository;
 
@@ -20,18 +24,29 @@ public class TicketService {
         this.eventRepository = eventRepository;
     }
 
-    /** Fetches a Ticket, converts to DTO */
+    /**
+     * Retrieves a ticket by ID and converts it to DTO.
+     */
     public TicketDto getTicketById(Long id) {
         Ticket t = ticketRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Ticket with id " + id + " not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Ticket with id " + id + " not found"
+                        )
+                );
         return toDto(t);
     }
 
-    /** Accepts a request‐DTO, persists, returns DTO */
+    /**
+     * Creates a new ticket from a request DTO.
+     */
     public TicketDto createTicket(TicketRequest req) {
-        // look up the Event entity; throws 404 if bad ID
         Event ev = eventRepository.findById(req.getEventId())
-                .orElseThrow(() -> new ResourceNotFoundException("Event with id " + req.getEventId() + " not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Event with id " + req.getEventId() + " not found"
+                        )
+                );
 
         Ticket t = new Ticket();
         t.setEvent(ev);
@@ -43,14 +58,24 @@ public class TicketService {
         return toDto(saved);
     }
 
-    /** Updates via request‐DTO */
+    /**
+     * Updates an existing ticket using the provided DTO.
+     */
     public TicketDto updateTicket(Long id, TicketRequest req) {
         Ticket t = ticketRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Ticket with id " + id + " not found"));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Ticket with id " + id + " not found"
+                        )
+                );
 
         if (req.getEventId() != null) {
             Event ev = eventRepository.findById(req.getEventId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Event with id " + req.getEventId() + " not found"));
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Event with id " + req.getEventId() + " not found"
+                            )
+                    );
             t.setEvent(ev);
         }
         t.setSeatNumber(req.getSeatNumber());

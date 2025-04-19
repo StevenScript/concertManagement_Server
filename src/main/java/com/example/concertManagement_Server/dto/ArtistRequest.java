@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request payload for creating or updating an Artist.
+ * Payload for creating or updating an artist.
  */
 @Data
 @NoArgsConstructor

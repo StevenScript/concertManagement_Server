@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: docker   # <‑‑ default when you run the jar or docker‑compose
+    active: docker
 
 ---
 
@@ -10,8 +10,8 @@ spring:
       on-profile: docker
   datasource:
     url: jdbc:mysql://db:3306/concertdb?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-    username: root      # ⇒ keep in sync with docker‑compose
-    password: password  # ⇒ keep in sync with docker‑compose
+    username: root
+    password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -34,7 +34,7 @@ spring:
     password:
   jpa:
     hibernate:
-      ddl-auto: create-drop          # fast schema for every test run
+      ddl-auto: create-drop
     open-in-view: false
 
   management:

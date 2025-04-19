@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO for exposing venue details to clients.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

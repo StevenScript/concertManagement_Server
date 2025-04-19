@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Response payload for Ticket data.
+ * DTO for ticket information in responses.
  */
 @Data
 @NoArgsConstructor
