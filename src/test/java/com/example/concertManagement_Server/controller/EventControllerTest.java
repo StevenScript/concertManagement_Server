@@ -18,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -45,18 +44,25 @@ public class EventControllerTest {
     @InjectMocks
     private EventController eventController;
 
-    /**
-     * Ensures getEvent(id) returns HTTP 200 and the correct DTO when found.
-     */
+    /** Ensures getEvent(id) returns HTTP 200 and the correct DTO when found. */
     @Test
     void testGetEventDtoFound() {
         // Given
         Event entity = new Event();
         entity.setId(99L);
-        entity.setEventDate(LocalDate.of(2025,5,10));
+        entity.setName("Test Event");
+        entity.setEventDate(LocalDate.of(2025, 5, 10));
         given(eventService.getEventById(99L)).willReturn(entity);
 
-        EventDto dto = new EventDto(99L, entity.getEventDate(), null, null, null, null);
+        EventDto dto = new EventDto(
+                99L,
+                "Test Event",
+                entity.getEventDate(),
+                null,
+                null,
+                null,
+                null
+        );
         given(eventMapper.toDto(entity)).willReturn(dto);
 
         // When
@@ -71,34 +77,57 @@ public class EventControllerTest {
     @Test
     void testGetEventDtoNotFound() {
         given(eventService.getEventById(999L))
-                .willThrow(new com.example.concertManagement_Server.exception.ResourceNotFoundException("Event with id 999 not found"));
+                .willThrow(new com.example.concertManagement_Server.exception.ResourceNotFoundException(
+                        "Event with id 999 not found"));
 
-        assertThrows(com.example.concertManagement_Server.exception.ResourceNotFoundException.class,
+        assertThrows(
+                com.example.concertManagement_Server.exception.ResourceNotFoundException.class,
                 () -> eventController.getEvent(999L));
     }
 
-    /**
-     * Verifies createEvent pipeline:
-     * mapping → saving → mapping back → HTTP 201.
-     */
+    /** Verifies createEvent pipeline: mapping → saving → mapping back → HTTP 201. */
     @Test
     void testCreateEventDtoPipeline() {
         // Given
         EventRequest req = new EventRequest(
-                LocalDate.of(2025,6,1), 50.0, 100, 5L, Set.of(10L,11L)
+                "Summer Show",
+                LocalDate.of(2025, 6, 1),
+                50.0,
+                100,
+                5L,
+                Set.of(10L, 11L)
         );
-        Venue venue = new Venue(); venue.setId(5L);
-        Artist a1 = new Artist(); a1.setId(10L);
-        Artist a2 = new Artist(); a2.setId(11L);
+
+        Venue venue = new Venue();
+        venue.setId(5L);
+
+        Artist a1 = new Artist();
+        a1.setId(10L);
+        Artist a2 = new Artist();
+        a2.setId(11L);
+
         given(venueService.getVenueById(5L)).willReturn(venue);
         given(artistService.getArtistById(10L)).willReturn(a1);
         given(artistService.getArtistById(11L)).willReturn(a2);
 
         Event toSave = new Event();
-        given(eventMapper.toEntity(req, venue, Set.of(a1,a2))).willReturn(toSave);
-        Event saved = new Event(); saved.setId(20L);
+        toSave.setName("Summer Show");
+        given(eventMapper.toEntity(req, venue, Set.of(a1, a2))).willReturn(toSave);
+
+        Event saved = new Event();
+        saved.setId(20L);
+        saved.setName("Summer Show");
         given(eventService.createEvent(toSave)).willReturn(saved);
-        EventDto dto = new EventDto(20L,null,null,null,null,null);
+
+        EventDto dto = new EventDto(
+                20L,
+                "Summer Show",
+                null,
+                null,
+                null,
+                null,
+                null
+        );
         given(eventMapper.toDto(saved)).willReturn(dto);
 
         // When
@@ -113,8 +142,10 @@ public class EventControllerTest {
     @Test
     void testGetTicketsAndCount() {
         // Tickets
-        Ticket t = new Ticket(); t.setId(501L);
+        Ticket t = new Ticket();
+        t.setId(501L);
         given(eventService.getTicketsForEvent(2L)).willReturn(List.of(t));
+
         ResponseEntity<List<Ticket>> tr = eventController.getTicketsForEvent(2L);
         assertEquals(200, tr.getStatusCodeValue());
         assertEquals(501L, tr.getBody().get(0).getId());
@@ -126,46 +157,65 @@ public class EventControllerTest {
         assertEquals(150L, cr.getBody());
     }
 
-    /**
-     * Verifies getAll and getUpcoming return mapped DTO lists.
-     */
+    /** Verifies getAll and getUpcoming return mapped DTO lists. */
     @Test
     void testGetAllAndUpcomingEventsDtoPipeline() {
-        Event e = new Event(); e.setId(1L);
-        given(eventService.getAllEvents()).willReturn(List.of(e));
-        EventDto d = new EventDto(1L,null,null,null,null,null);
-        given(eventMapper.toDto(e)).willReturn(d);
+        Event event = new Event();
+        event.setId(1L);
+        event.setName("Any");
+        given(eventService.getAllEvents()).willReturn(List.of(event));
+
+        EventDto d = new EventDto(
+                1L,
+                "Any",
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+        given(eventMapper.toDto(event)).willReturn(d);
 
         List<EventDto> all = eventController.getAllEvents();
         assertEquals(1, all.size());
         assertEquals(d, all.get(0));
 
-        given(eventService.findUpcomingEvents()).willReturn(List.of(e));
+        given(eventService.findUpcomingEvents()).willReturn(List.of(event));
         List<EventDto> up = eventController.getUpcomingEvents();
         assertEquals(1, up.size());
         assertEquals(d, up.get(0));
     }
 
-    /**
-     * Tests listing events by artist and adding an artist to an event.
-     */
+    /** Tests listing events by artist and adding an artist to an event. */
     @Test
     void testGetEventsByArtistAndAddArtistPipeline() {
-        Event e = new Event(); e.setId(2L);
-        EventDto d = new EventDto(2L,null,null,null,null,null);
-        given(eventService.listAllEventsForArtist(7L)).willReturn(List.of(e));
-        given(eventMapper.toDto(e)).willReturn(d);
+        Event event = new Event();
+        event.setId(2L);
+        event.setName("Any2");
+
+        EventDto d = new EventDto(
+                2L,
+                "Any2",
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        given(eventService.listAllEventsForArtist(7L)).willReturn(List.of(event));
+        given(eventMapper.toDto(event)).willReturn(d);
 
         ResponseEntity<List<EventDto>> lr = eventController.getEventsByArtist(7L);
         assertEquals(200, lr.getStatusCodeValue());
         assertEquals(1, lr.getBody().size());
         assertEquals(d, lr.getBody().get(0));
 
-        given(eventService.addArtistToEvent(3L,8L)).willReturn(e);
-        given(eventMapper.toDto(e)).willReturn(d);
-        ResponseEntity<EventDto> ar = eventController.addArtistToEvent(3L,8L);
+        given(eventService.addArtistToEvent(3L, 8L)).willReturn(event);
+        given(eventMapper.toDto(event)).willReturn(d);
+
+        ResponseEntity<EventDto> ar = eventController.addArtistToEvent(3L, 8L);
         assertEquals(200, ar.getStatusCodeValue());
         assertEquals(d, ar.getBody());
     }
 }
-

@@ -25,6 +25,7 @@ public class EventMapper {
     public EventDto toDto(Event event) {
         return new EventDto(
                 event.getId(),
+                event.getName(),
                 event.getEventDate(),
                 event.getTicketPrice(),
                 event.getAvailableTickets(),
@@ -47,6 +48,7 @@ public class EventMapper {
      */
     public Event toEntity(EventRequest req, Venue venue, Set<Artist> artists) {
         Event event = new Event();
+        event.setName(req.getName());
         event.setEventDate(req.getEventDate());
         event.setTicketPrice(req.getTicketPrice());
         event.setAvailableTickets(req.getAvailableTickets());
@@ -67,6 +69,7 @@ public class EventMapper {
                              Event event,
                              Venue venue,
                              Set<Artist> artists) {
+        event.setName(req.getName());
         event.setEventDate(req.getEventDate());
         event.setTicketPrice(req.getTicketPrice());
         event.setAvailableTickets(req.getAvailableTickets());

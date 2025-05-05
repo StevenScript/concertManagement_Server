@@ -14,6 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventRequest {
+    private String name;
     private LocalDate eventDate;
     private Double ticketPrice;
     private Integer availableTickets;

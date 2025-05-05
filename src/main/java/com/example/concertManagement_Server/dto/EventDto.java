@@ -15,6 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class EventDto {
     private Long id;
+    private String name;
     private LocalDate eventDate;
     private Double ticketPrice;
     private Integer availableTickets;

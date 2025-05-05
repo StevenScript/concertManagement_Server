@@ -14,11 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -26,22 +22,16 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class EventServiceTest {
 
-    @Mock
-    private EventRepository eventRepository;
+    @Mock private EventRepository eventRepository;
+    @Mock private ArtistRepository artistRepository;
+    @Mock private TicketRepository ticketRepository;
 
-    @Mock
-    private ArtistRepository artistRepository;
-
-    @Mock
-    private TicketRepository ticketRepository;
-
-    @InjectMocks
-    private EventService eventService;
+    @InjectMocks private EventService eventService;
 
     @Test
     void testGetAllEvents() {
-        Event e1 = new Event(); e1.setId(1L);
-        Event e2 = new Event(); e2.setId(2L);
+        Event e1 = new Event(); e1.setId(1L); e1.setName("A");
+        Event e2 = new Event(); e2.setId(2L); e2.setName("B");
         when(eventRepository.findAll()).thenReturn(List.of(e1, e2));
 
         List<Event> results = eventService.getAllEvents();
@@ -54,19 +44,25 @@ public class EventServiceTest {
     @Test
     void testFindUpcomingEvents() {
         LocalDate today = LocalDate.now();
-        Event upcoming = new Event(); upcoming.setId(3L); upcoming.setEventDate(today.plusDays(1));
-        when(eventRepository.findByEventDateAfter(today)).thenReturn(List.of(upcoming));
+        Event upcoming = new Event();
+        upcoming.setId(3L);
+        upcoming.setName("Future");
+        upcoming.setEventDate(today.plusDays(1));
+
+        when(eventRepository.findByEventDateAfterOrderByEventDateAsc(today))
+                .thenReturn(List.of(upcoming));
 
         List<Event> results = eventService.findUpcomingEvents();
         assertEquals(1, results.size());
         assertEquals(3L, results.get(0).getId());
-        verify(eventRepository).findByEventDateAfter(today);
+        verify(eventRepository).findByEventDateAfterOrderByEventDateAsc(today);
     }
 
     @Test
     void testGetEventById_Found() {
         Event mockEvent = new Event();
         mockEvent.setId(50L);
+        mockEvent.setName("Found");
         mockEvent.setEventDate(LocalDate.of(2025, 5, 10));
 
         when(eventRepository.findById(50L)).thenReturn(Optional.of(mockEvent));
@@ -81,18 +77,21 @@ public class EventServiceTest {
     void testGetEventById_NotFound() {
         when(eventRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> eventService.getEventById(999L));
+        assertThrows(ResourceNotFoundException.class,
+                () -> eventService.getEventById(999L));
         verify(eventRepository).findById(999L);
     }
 
     @Test
     void testCreateEvent() {
         Event newEvent = new Event();
+        newEvent.setName("Create");
         newEvent.setEventDate(LocalDate.of(2025, 8, 20));
         newEvent.setTicketPrice(99.99);
 
         Event savedEvent = new Event();
         savedEvent.setId(101L);
+        savedEvent.setName("Create");
         savedEvent.setEventDate(LocalDate.of(2025, 8, 20));
         savedEvent.setTicketPrice(99.99);
 
@@ -109,6 +108,7 @@ public class EventServiceTest {
     void testUpdateEvent_Found() {
         Event existing = new Event();
         existing.setId(5L);
+        existing.setName("Old");
         existing.setEventDate(LocalDate.of(2025, 5, 10));
         existing.setTicketPrice(50.0);
 
@@ -116,6 +116,7 @@ public class EventServiceTest {
         when(eventRepository.save(any(Event.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Event updatedData = new Event();
+        updatedData.setName("Old");
         updatedData.setEventDate(LocalDate.of(2025, 6, 15));
         updatedData.setTicketPrice(60.0);
 
@@ -132,9 +133,11 @@ public class EventServiceTest {
         when(eventRepository.findById(999L)).thenReturn(Optional.empty());
 
         Event updatedData = new Event();
+        updatedData.setName("X");
         updatedData.setEventDate(LocalDate.of(2025, 1, 1));
 
-        assertThrows(ResourceNotFoundException.class, () -> eventService.updateEvent(999L, updatedData));
+        assertThrows(ResourceNotFoundException.class,
+                () -> eventService.updateEvent(999L, updatedData));
         verify(eventRepository).findById(999L);
         verify(eventRepository, never()).save(any(Event.class));
     }
@@ -143,6 +146,7 @@ public class EventServiceTest {
     void testAddArtistToEvent_Success() {
         Event existingEvent = new Event();
         existingEvent.setId(5L);
+        existingEvent.setName("AddArtist");
         existingEvent.setArtists(new HashSet<>());
 
         Artist newArtist = new Artist();
@@ -167,7 +171,8 @@ public class EventServiceTest {
     void testAddArtistToEvent_EventNotFound() {
         when(eventRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> eventService.addArtistToEvent(999L, 100L));
+        assertThrows(ResourceNotFoundException.class,
+                () -> eventService.addArtistToEvent(999L, 100L));
         verify(eventRepository).findById(999L);
         verify(artistRepository, never()).findById(anyLong());
         verify(eventRepository, never()).save(any(Event.class));
@@ -177,12 +182,14 @@ public class EventServiceTest {
     void testAddArtistToEvent_ArtistNotFound() {
         Event existingEvent = new Event();
         existingEvent.setId(5L);
+        existingEvent.setName("NoArtist");
         existingEvent.setArtists(new HashSet<>());
 
         when(eventRepository.findById(5L)).thenReturn(Optional.of(existingEvent));
         when(artistRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> eventService.addArtistToEvent(5L, 999L));
+        assertThrows(ResourceNotFoundException.class,
+                () -> eventService.addArtistToEvent(5L, 999L));
         verify(eventRepository).findById(5L);
         verify(artistRepository).findById(999L);
         verify(eventRepository, never()).save(any(Event.class));
@@ -192,6 +199,7 @@ public class EventServiceTest {
     void testListAllEventsForArtist() {
         Event mockEvent = new Event();
         mockEvent.setId(1L);
+        mockEvent.setName("ArtistEvent");
         mockEvent.setEventDate(LocalDate.of(2025, 5, 10));
 
         when(eventRepository.findEventsByArtistId(10L))

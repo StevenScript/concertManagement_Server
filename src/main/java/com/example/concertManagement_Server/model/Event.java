@@ -27,6 +27,10 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Human‑readable title, e.g. “Summer Jam 2025”. */
+    @Column(nullable = false)
+    private String name;
+
     /**
      * Date of the event.
      */

@@ -47,4 +47,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
      * @return list of events at that venue
      */
     List<Event> findByVenueId(Long venueId);
+
+
+    List<Event> findByEventDateAfterOrderByEventDateAsc(LocalDate today);
 }

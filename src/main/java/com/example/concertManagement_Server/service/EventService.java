@@ -54,7 +54,8 @@ public class EventService {
      * Finds events occurring after today.
      */
     public List<Event> findUpcomingEvents() {
-        return eventRepository.findByEventDateAfter(LocalDate.now());
+        return eventRepository
+                .findByEventDateAfterOrderByEventDateAsc(LocalDate.now());
     }
 
     /**
