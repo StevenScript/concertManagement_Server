@@ -16,8 +16,8 @@ import java.time.LocalDate;
 public class TicketRepositoryTest {
 
     @Autowired private TicketRepository ticketRepository;
-    @Autowired private EventRepository eventRepository;
-    @Autowired private VenueRepository venueRepository;
+    @Autowired private EventRepository  eventRepository;
+    @Autowired private VenueRepository  venueRepository;
 
     @Test
     void testSaveAndFindTicket() {
@@ -37,19 +37,14 @@ public class TicketRepositoryTest {
 
         Ticket ticket = new Ticket();
         ticket.setEvent(savedEvent);
-        ticket.setSeatNumber("A12");
-        ticket.setTicketType("VIP");
-        ticket.setBuyerName("John Doe");
+        ticket.setBuyerEmail("john@example.com");
 
         Ticket savedTicket = ticketRepository.save(ticket);
-
         Assertions.assertNotNull(savedTicket.getId());
 
         Ticket foundTicket = ticketRepository.findById(savedTicket.getId()).orElse(null);
         Assertions.assertNotNull(foundTicket);
-        Assertions.assertEquals("A12", foundTicket.getSeatNumber());
-        Assertions.assertEquals("VIP", foundTicket.getTicketType());
-        Assertions.assertEquals("John Doe", foundTicket.getBuyerName());
+        Assertions.assertEquals("john@example.com", foundTicket.getBuyerEmail());
         Assertions.assertEquals(savedEvent.getId(), foundTicket.getEvent().getId());
     }
 }

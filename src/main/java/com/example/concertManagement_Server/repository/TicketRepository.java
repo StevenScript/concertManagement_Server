@@ -27,4 +27,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
      * @return number of tickets
      */
     Long countByEventId(Long eventId);
+
+    List<Ticket> findByBuyerEmail(String buyerEmail);
 }

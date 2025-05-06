@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 /**
  * DTO for ticket information in responses.
  */
@@ -11,9 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TicketDto {
-    private Long id;
-    private Long eventId;
-    private String seatNumber;
-    private String ticketType;
-    private String buyerName;
+    private Long   id;
+    private String eventName;
+    private LocalDate eventDate;
+    private String venueName;
+    private String buyerEmail;
 }

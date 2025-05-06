@@ -5,7 +5,10 @@ import com.example.concertManagement_Server.dto.TicketRequest;
 import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.service.TicketService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/tickets")
@@ -52,5 +55,16 @@ public class TicketController {
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/buyer/{email}")
+    public List<TicketDto> ticketsForBuyer(@PathVariable String email) {
+        return ticketService.findByBuyerEmail(email);
+    }
+
+    @GetMapping("/me")
+    public List<TicketDto> myTickets() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ticketService.findByBuyerEmail(email);
     }
 }

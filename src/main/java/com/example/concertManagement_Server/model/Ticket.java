@@ -43,5 +43,5 @@ public class Ticket {
     /**
      * Name of the ticket buyer.
      */
-    private String buyerName;
+    private String buyerEmail;
 }

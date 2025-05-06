@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TicketRequest {
-    private Long eventId;
-    private String seatNumber;
-    private String ticketType;
-    private String buyerName;
+    private Long eventId;       // which event to buy
+    private String buyerEmail;  // if null, service pulls from auth principal
 }

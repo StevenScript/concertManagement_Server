@@ -3,96 +3,92 @@ package com.example.concertManagement_Server.service;
 import com.example.concertManagement_Server.dto.TicketDto;
 import com.example.concertManagement_Server.dto.TicketRequest;
 import com.example.concertManagement_Server.exception.ResourceNotFoundException;
+import com.example.concertManagement_Server.mapper.TicketMapper;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Ticket;
 import com.example.concertManagement_Server.repository.EventRepository;
 import com.example.concertManagement_Server.repository.TicketRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-/**
- * Manages ticket lifecycle: retrieval, creation, and updates.
- */
+import java.util.List;
+
+/** Manages ticket lifecycle: retrieval, creation, updates, and buyer queries. */
 @Service
 public class TicketService {
 
     private final TicketRepository ticketRepository;
-    private final EventRepository eventRepository;
+    private final EventRepository  eventRepository;
+    private final TicketMapper     ticketMapper;
 
     public TicketService(TicketRepository ticketRepository,
-                         EventRepository eventRepository) {
+                         EventRepository  eventRepository,
+                         TicketMapper     ticketMapper) {
         this.ticketRepository = ticketRepository;
-        this.eventRepository = eventRepository;
+        this.eventRepository  = eventRepository;
+        this.ticketMapper     = ticketMapper;
     }
 
-    /**
-     * Retrieves a ticket by ID and converts it to DTO.
-     */
+    /* ---------- single ticket ---------- */
+
     public TicketDto getTicketById(Long id) {
         Ticket t = ticketRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Ticket with id " + id + " not found"
-                        )
-                );
-        return toDto(t);
+                        new ResourceNotFoundException("Ticket id " + id + " not found"));
+        return ticketMapper.toDto(t);
     }
 
-    /**
-     * Creates a new ticket from a request DTO.
-     */
+    /* ---------- create ---------- */
+
     public TicketDto createTicket(TicketRequest req) {
         Event ev = eventRepository.findById(req.getEventId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Event with id " + req.getEventId() + " not found"
-                        )
-                );
+                        new ResourceNotFoundException("Event id " + req.getEventId() + " not found"));
 
         Ticket t = new Ticket();
         t.setEvent(ev);
-        t.setSeatNumber(req.getSeatNumber());
-        t.setTicketType(req.getTicketType());
-        t.setBuyerName(req.getBuyerName());
+        t.setBuyerEmail(resolveBuyerEmail(req.getBuyerEmail()));
 
         Ticket saved = ticketRepository.save(t);
-        return toDto(saved);
+        return ticketMapper.toDto(saved);
     }
 
-    /**
-     * Updates an existing ticket using the provided DTO.
-     */
+    /* ---------- update ---------- */
+
     public TicketDto updateTicket(Long id, TicketRequest req) {
         Ticket t = ticketRepository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Ticket with id " + id + " not found"
-                        )
-                );
+                        new ResourceNotFoundException("Ticket id " + id + " not found"));
 
         if (req.getEventId() != null) {
             Event ev = eventRepository.findById(req.getEventId())
                     .orElseThrow(() ->
-                            new ResourceNotFoundException(
-                                    "Event with id " + req.getEventId() + " not found"
-                            )
-                    );
+                            new ResourceNotFoundException("Event id " + req.getEventId() + " not found"));
             t.setEvent(ev);
         }
-        t.setSeatNumber(req.getSeatNumber());
-        t.setTicketType(req.getTicketType());
-        t.setBuyerName(req.getBuyerName());
+        if (req.getBuyerEmail() != null) {
+            t.setBuyerEmail(req.getBuyerEmail());
+        }
 
         Ticket saved = ticketRepository.save(t);
-        return toDto(saved);
+        return ticketMapper.toDto(saved);
     }
 
-    private TicketDto toDto(Ticket t) {
-        return new TicketDto(
-                t.getId(),
-                t.getEvent().getId(),
-                t.getSeatNumber(),
-                t.getTicketType(),
-                t.getBuyerName()
-        );
+    /* ---------- list by buyer ---------- */
+
+    public List<TicketDto> findByBuyerEmail(String email) {
+        return ticketRepository.findByBuyerEmail(email)
+                .stream()
+                .map(ticketMapper::toDto)
+                .toList();
+    }
+
+    /* ---------- helper ---------- */
+
+    private String resolveBuyerEmail(String fromRequest) {
+        if (fromRequest != null && !fromRequest.isBlank()) {
+            return fromRequest;
+        }
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }
