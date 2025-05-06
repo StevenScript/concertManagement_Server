@@ -73,6 +73,7 @@ public class EventService {
     public Event updateEvent(Long id, Event updatedData) {
         return eventRepository.findById(id)
                 .map(e -> {
+                    e.setName(updatedData.getName());
                     e.setEventDate(updatedData.getEventDate());
                     e.setTicketPrice(updatedData.getTicketPrice());
                     e.setAvailableTickets(updatedData.getAvailableTickets());
@@ -109,6 +110,13 @@ public class EventService {
 
         event.getArtists().add(artist);
         return eventRepository.save(event);
+    }
+
+    public void deleteEvent(Long id) {
+        if (!eventRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Event id " + id + " not found");
+        }
+        eventRepository.deleteById(id);
     }
 
     /**

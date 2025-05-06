@@ -134,4 +134,10 @@ public class EventController {
     public ResponseEntity<Long> getTicketCountForEvent(@PathVariable Long id) {
         return ResponseEntity.ok(eventService.getTicketCountForEvent(id));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
+        eventService.deleteEvent(id);             // implement in service if not present
+        return ResponseEntity.noContent().build();
+    }
 }
