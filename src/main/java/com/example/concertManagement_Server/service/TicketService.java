@@ -91,4 +91,11 @@ public class TicketService {
         }
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
+
+    public List<TicketDto> getAllTickets() {
+        return ticketRepository.findAll()
+                .stream()
+                .map(ticketMapper::toDto)
+                .toList();
+    }
 }

@@ -67,4 +67,9 @@ public class TicketController {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ticketService.findByBuyerEmail(email);
     }
+
+    @GetMapping
+    public List<TicketDto> getAllTickets() {
+        return ticketService.getAllTickets();
+    }
 }
