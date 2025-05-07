@@ -2,6 +2,7 @@ package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.dto.ArtistDto;
 import com.example.concertManagement_Server.dto.ArtistRequest;
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.mapper.ArtistMapper;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Venue;
@@ -91,5 +92,15 @@ public class ArtistController {
     @GetMapping("/{artistId}/venues")
     public ResponseEntity<List<Venue>> getVenuesForArtist(@PathVariable Long artistId) {
         return ResponseEntity.ok(artistService.getVenuesForArtist(artistId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteArtist(@PathVariable Long id) {
+        try {
+            artistService.deleteArtist(id);
+            return ResponseEntity.noContent().build();   // 204
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();    // 404
+        }
     }
 }

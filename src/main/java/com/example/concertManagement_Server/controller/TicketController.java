@@ -72,4 +72,14 @@ public class TicketController {
     public List<TicketDto> getAllTickets() {
         return ticketService.getAllTickets();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
+        try {
+            ticketService.deleteTicket(id);
+            return ResponseEntity.noContent().build();   // 204
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();    // 404
+        }
+    }
 }

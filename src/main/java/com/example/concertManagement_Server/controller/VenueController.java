@@ -2,6 +2,7 @@ package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.dto.VenueDto;
 import com.example.concertManagement_Server.dto.VenueRequest;
+import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.mapper.VenueMapper;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
@@ -88,5 +89,15 @@ public class VenueController {
         return ResponseEntity.ok(
                 venueService.findUpcomingEventsForVenue(id)
         );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteVenue(@PathVariable Long id) {
+        try {
+            venueService.deleteVenue(id);
+            return ResponseEntity.noContent().build();   // 204
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.notFound().build();    // 404
+        }
     }
 }

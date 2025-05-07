@@ -98,4 +98,11 @@ public class TicketService {
                 .map(ticketMapper::toDto)
                 .toList();
     }
+
+    public void deleteTicket(Long id) {
+        if (!ticketRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Ticket id " + id + " not found");
+        }
+        ticketRepository.deleteById(id);
+    }
 }

@@ -99,4 +99,11 @@ public class VenueService {
                 .filter(e -> e.getEventDate().isAfter(today))
                 .collect(Collectors.toList());
     }
+
+    public void deleteVenue(Long id) {
+        if (!venueRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Venue id " + id + " not found");
+        }
+        venueRepository.deleteById(id);
+    }
 }

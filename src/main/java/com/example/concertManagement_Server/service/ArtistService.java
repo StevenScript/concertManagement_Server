@@ -103,4 +103,11 @@ public class ArtistService {
     public List<Artist> listAllArtistsForVenue(Long venueId) {
         return artistRepository.findArtistsByVenueId(venueId);
     }
+
+    public void deleteArtist(Long id) {
+        if (!artistRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Artist id " + id + " not found");
+        }
+        artistRepository.deleteById(id);
+    }
 }
