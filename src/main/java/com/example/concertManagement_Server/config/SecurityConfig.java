@@ -30,7 +30,8 @@ public class SecurityConfig {
                                 "/venues/**",
                                 "/artists/**",
                                 "/events/**",
-                                "/tickets/**"
+                                "/tickets/**",
+                                "/users/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
