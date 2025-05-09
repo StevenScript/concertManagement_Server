@@ -23,7 +23,7 @@ class AuthControllerTest {
 
     private MockMvc mockMvc;
     private AuthService authService;
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
@@ -35,14 +35,24 @@ class AuthControllerTest {
     /** Verifies POST /api/register returns a valid AuthResponse JSON. */
     @Test
     void registerReturnsAuthResponse() throws Exception {
-        RegisterRequest req = new RegisterRequest("alice", "alice@example.com", "password", "USER");
-        AuthResponse resp = new AuthResponse("alice", "alice@example.com", "USER", "jwt-123");
+        RegisterRequest req = new RegisterRequest(
+                "alice", "alice@example.com", "password", "USER");
+
+        AuthResponse resp = new AuthResponse(
+                42L,                       // id
+                "alice",
+                "alice@example.com",
+                "USER",
+                "jwt-123"
+        );
+
         given(authService.register(req)).willReturn(resp);
 
         mockMvc.perform(post("/api/register")
                         .contentType("application/json")
                         .content(mapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())             // 201
+                .andExpect(jsonPath("$.id").value(42))
                 .andExpect(jsonPath("$.username").value("alice"))
                 .andExpect(jsonPath("$.email").value("alice@example.com"))
                 .andExpect(jsonPath("$.role").value("USER"))
@@ -53,13 +63,22 @@ class AuthControllerTest {
     @Test
     void loginReturnsAuthResponse() throws Exception {
         LoginRequest req = new LoginRequest("bob", "secret");
-        AuthResponse resp = new AuthResponse("bob", "bob@example.com", "ADMIN", "jwt-999");
+
+        AuthResponse resp = new AuthResponse(
+                99L,
+                "bob",
+                "bob@example.com",
+                "ADMIN",
+                "jwt-999"
+        );
+
         given(authService.login(req)).willReturn(resp);
 
         mockMvc.perform(post("/api/login")
                         .contentType("application/json")
                         .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(99))
                 .andExpect(jsonPath("$.username").value("bob"))
                 .andExpect(jsonPath("$.email").value("bob@example.com"))
                 .andExpect(jsonPath("$.role").value("ADMIN"))

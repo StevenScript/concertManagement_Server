@@ -12,14 +12,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * Handles user registration and authentication,
- * including password encoding and JWT issuance.
+ * Handles user registration and authentication:
+ * encodes passwords and issues JWTs.
  */
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserRepository   userRepository;
+    private final PasswordEncoder  passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
     public AuthService(UserRepository userRepository,
@@ -30,10 +30,7 @@ public class AuthService {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    /**
-     * Registers a new user and returns an AuthResponse with JWT.
-     * @throws UsernameAlreadyExistsException if the username is taken
-     */
+    /* ---------- register ---------- */
     public AuthResponse register(RegisterRequest req) {
         if (userRepository.existsByUsername(req.getUsername())) {
             throw new UsernameAlreadyExistsException("Username already taken");
@@ -47,22 +44,26 @@ public class AuthService {
                 .build();
 
         userRepository.save(u);
+
         String token = jwtTokenProvider.generateToken(u.getUsername());
 
-        return new AuthResponse(u.getUsername(), u.getEmail(), u.getRole(), token);
+        return new AuthResponse(
+                u.getId(),           // ← NEW
+                u.getUsername(),
+                u.getEmail(),
+                u.getRole(),
+                token
+        );
     }
 
-    /**
-     * Convenience overload using raw credentials.
-     */
-    public AuthResponse register(String username, String password, String email, String role) {
+    public AuthResponse register(String username,
+                                 String password,
+                                 String email,
+                                 String role) {
         return register(new RegisterRequest(username, email, password, role));
     }
 
-    /**
-     * Authenticates user credentials and returns JWT on success.
-     * @throws InvalidCredentialsException if authentication fails
-     */
+    /* ---------- login ---------- */
     public AuthResponse login(LoginRequest req) {
         User u = userRepository.findByUsername(req.getUsername())
                 .orElseThrow(() ->
@@ -74,12 +75,16 @@ public class AuthService {
         }
 
         String token = jwtTokenProvider.generateToken(u.getUsername());
-        return new AuthResponse(u.getUsername(), u.getEmail(), u.getRole(), token);
+
+        return new AuthResponse(
+                u.getId(),           // ← NEW
+                u.getUsername(),
+                u.getEmail(),
+                u.getRole(),
+                token
+        );
     }
 
-    /**
-     * Convenience overload using raw credentials.
-     */
     public AuthResponse login(String username, String password) {
         return login(new LoginRequest(username, password));
     }
