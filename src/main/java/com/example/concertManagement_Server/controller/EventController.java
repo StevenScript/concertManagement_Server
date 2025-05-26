@@ -128,6 +128,14 @@ public class EventController {
     }
 
     /**
+     * Retrieves tickets **left** for a specific event.
+     */
+    @GetMapping("/{id}/tickets-left")
+    public ResponseEntity<Long> getTicketsLeft(@PathVariable Long id) {
+        return ResponseEntity.ok(eventService.getTicketsLeftForEvent(id));
+    }
+
+    /**
      * Retrieves ticket count for a specific event.
      */
     @GetMapping("/{id}/ticket-count")

@@ -120,6 +120,15 @@ public class EventService {
     }
 
     /**
+     * Remaining tickets for an event (capacity – sold).
+     */
+    public Long getTicketsLeftForEvent(Long eventId) {
+        Event ev = getEventById(eventId);
+        long sold = ticketRepository.countByEventId(eventId);
+        return ev.getAvailableTickets() - sold;
+    }
+
+    /**
      * Retrieves all tickets for a specific event.
      */
     public List<Ticket> getTicketsForEvent(Long eventId) {

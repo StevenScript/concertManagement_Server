@@ -1,8 +1,7 @@
 package com.example.concertManagement_Server.controller;
 
-import com.example.concertManagement_Server.dto.VenueDto;
-import com.example.concertManagement_Server.dto.VenueRequest;
-import com.example.concertManagement_Server.mapper.VenueMapper;
+import com.example.concertManagement_Server.dto.*;
+import com.example.concertManagement_Server.mapper.*;
 import com.example.concertManagement_Server.model.Artist;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Venue;
@@ -18,32 +17,34 @@ import org.springframework.http.ResponseEntity;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import static org.mockito.BDDMockito.given;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class VenueControllerTest {
+class VenueControllerTest {
 
-    @Mock
-    private VenueService venueService;
+    /* ---------- mocks ---------- */
+    @Mock private VenueService  venueService;
+    @Mock private ArtistService artistService;
 
-    @Mock
-    private ArtistService artistService;
-
-    @Mock
-    private VenueMapper venueMapper;
+    @Mock private VenueMapper  venueMapper;
+    @Mock private ArtistMapper artistMapper;
+    @Mock private EventMapper  eventMapper;
 
     @InjectMocks
     private VenueController venueController;
 
-    /** Verifies getVenue(id) returns HTTP 200 and the correct DTO. */
+    /* ---------- venue CRUD tests ---------- */
+
     @Test
     void testGetVenue_Found() {
         Venue entity = new Venue(); entity.setId(100L); entity.setName("Test");
-        VenueDto dto = new VenueDto(100L, "Test", null, null);
+        VenueDto dto  = new VenueDto(100L, "Test", null, null);
+
         given(venueService.getVenueById(100L)).willReturn(entity);
         given(venueMapper.toDto(entity)).willReturn(dto);
 
@@ -52,11 +53,11 @@ public class VenueControllerTest {
         assertEquals(dto, resp.getBody());
     }
 
-    /** Ensures listAllVenues returns HTTP 200 with all mapped DTOs. */
     @Test
     void testListAllVenues() {
         Venue v = new Venue(); v.setId(1L); v.setName("One");
         VenueDto d = new VenueDto(1L, "One", null, null);
+
         given(venueService.listAllVenues()).willReturn(List.of(v));
         given(venueMapper.toDto(v)).willReturn(d);
 
@@ -65,12 +66,12 @@ public class VenueControllerTest {
         assertEquals(List.of(d), resp.getBody());
     }
 
-    /** Verifies createVenue returns HTTP 201 and the created DTO. */
     @Test
     void testCreateVenue() {
         VenueRequest req = new VenueRequest("Name","Loc",123);
-        Venue entity = new Venue(); entity.setId(5L); entity.setName("Name");
-        VenueDto dto = new VenueDto(5L, "Name", "Loc", 123);
+        Venue entity     = new Venue(); entity.setId(5L); entity.setName("Name");
+        VenueDto dto     = new VenueDto(5L, "Name", "Loc", 123);
+
         given(venueService.createVenue(req)).willReturn(entity);
         given(venueMapper.toDto(entity)).willReturn(dto);
 
@@ -79,12 +80,12 @@ public class VenueControllerTest {
         assertEquals(dto, resp.getBody());
     }
 
-    /** Verifies updateVenue returns HTTP 200 and the updated DTO. */
     @Test
     void testUpdateVenue() {
         VenueRequest req = new VenueRequest("Up","Loc2",200);
-        Venue entity = new Venue(); entity.setId(7L); entity.setName("Up");
-        VenueDto dto = new VenueDto(7L, "Up", "Loc2", 200);
+        Venue entity     = new Venue(); entity.setId(7L); entity.setName("Up");
+        VenueDto dto     = new VenueDto(7L, "Up", "Loc2", 200);
+
         given(venueService.updateVenue(7L, req)).willReturn(entity);
         given(venueMapper.toDto(entity)).willReturn(dto);
 
@@ -93,46 +94,51 @@ public class VenueControllerTest {
         assertEquals(dto, resp.getBody());
     }
 
-    /** Checks getArtistsForVenue returns HTTP 200 with the artist list. */
+    /* ---------- extra look-ups ---------- */
+
     @Test
     void testGetArtistsForVenue() {
-        Artist mockArtist = new Artist();
-        mockArtist.setId(100L);
-        mockArtist.setStageName("The Testers");
+        Artist entity = new Artist(); entity.setId(100L); entity.setStageName("The Testers");
+        ArtistDto dto = new ArtistDto(100L, "The Testers", "Rock", 4, "NYC");
 
-        when(artistService.listAllArtistsForVenue(5L))
-                .thenReturn(Collections.singletonList(mockArtist));
+        given(artistService.listAllArtistsForVenue(5L)).willReturn(List.of(entity));
+        given(artistMapper.toDto(entity)).willReturn(dto);
 
-        ResponseEntity<List<Artist>> response = venueController.getArtistsForVenue(5L);
-        assertEquals(200, response.getStatusCodeValue());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals(100L, response.getBody().get(0).getId());
+        ResponseEntity<List<ArtistDto>> resp = venueController.getArtistsForVenue(5L);
+        assertEquals(200, resp.getStatusCodeValue());
+        assertEquals(List.of(dto), resp.getBody());
 
         verify(artistService).listAllArtistsForVenue(5L);
     }
 
-    /** Ensures getUpcomingEventsForVenue returns HTTP 200 with filtered events. */
     @Test
     void testGetUpcomingEventsForVenue() {
-        // Prepare a venue ID and a list of upcoming events
         Long venueId = 1L;
-        Event upcomingEvent = new Event();
-        upcomingEvent.setId(101L);
-        upcomingEvent.setEventDate(LocalDate.now().plusDays(5));
-        List<Event> upcomingEvents = Collections.singletonList(upcomingEvent);
 
-        // Mock the service call
-        when(venueService.findUpcomingEventsForVenue(venueId)).thenReturn(upcomingEvents);
+        Event entity = new Event();
+        entity.setId(101L);
+        entity.setName("Show");
+        entity.setEventDate(LocalDate.now().plusDays(5));
 
-        // Call your new endpoint
-        ResponseEntity<List<Event>> response = venueController.getUpcomingEventsForVenue(venueId);
+        EventDto dto = new EventDto(
+                101L,
+                "Show",
+                entity.getEventDate(),
+                null,
+                null,
+                venueId,
+                Set.of()
+        );
 
-        // Assertions
-        assertEquals(200, response.getStatusCodeValue());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        assertEquals(101L, response.getBody().get(0).getId());
+        given(venueService.findUpcomingEventsForVenue(venueId))
+                .willReturn(List.of(entity));
+        given(eventMapper.toDto(entity)).willReturn(dto);
+
+        ResponseEntity<List<EventDto>> resp =
+                venueController.getUpcomingEventsForVenue(venueId);
+
+        assertEquals(200, resp.getStatusCodeValue());
+        assertEquals(List.of(dto), resp.getBody());
 
         verify(venueService).findUpcomingEventsForVenue(venueId);
     }
