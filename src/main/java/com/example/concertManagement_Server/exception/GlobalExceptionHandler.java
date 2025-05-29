@@ -11,31 +11,48 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Handles cases where a requested resource is not found.
-     */
+    /* ---------- 404 ---------- */
+
+    /** Handles cases where a requested resource is not found. */
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String,Object>> handleResourceNotFound(
+    public ResponseEntity<Map<String, Object>> handleResourceNotFound(
             ResourceNotFoundException ex) {
+
         Map<String, Object> body = Map.of(
                 "timestamp", LocalDateTime.now(),
-                "status", HttpStatus.NOT_FOUND.value(),
-                "error", "Not Found",
-                "message", ex.getMessage()
+                "status",    HttpStatus.NOT_FOUND.value(),
+                "error",     "Not Found",
+                "message",   ex.getMessage()
         );
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
 
-    /**
-     * Catches all uncaught exceptions and returns a 500 error response.
-     */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String,Object>> handleAllExceptions(Exception ex) {
+    /* ---------- 400 ---------- */
+
+    /** Thrown when a ticket purchase or event update exceeds venue capacity. */
+    @ExceptionHandler(CapacityExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleCapacityExceeded(
+            CapacityExceededException ex) {
+
         Map<String, Object> body = Map.of(
                 "timestamp", LocalDateTime.now(),
-                "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "error", "Internal Server Error",
-                "message", ex.getMessage()
+                "status",    HttpStatus.BAD_REQUEST.value(),
+                "error",     "Bad Request",
+                "message",   ex.getMessage()
+        );
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    /* ---------- 500 fallback ---------- */
+
+    /** Catches any uncaught exceptions and returns a generic 500 response. */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleAllExceptions(Exception ex) {
+        Map<String, Object> body = Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status",    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "error",     "Internal Server Error",
+                "message",   ex.getMessage()
         );
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }

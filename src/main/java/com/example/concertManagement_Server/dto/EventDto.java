@@ -19,6 +19,7 @@ public class EventDto {
     private LocalDate eventDate;
     private Double ticketPrice;
     private Integer availableTickets;
+    private Long ticketsLeft;
     private Long venueId;
     private Set<Long> artistIds;
 }

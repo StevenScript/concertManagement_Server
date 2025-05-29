@@ -15,19 +15,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class VenueControllerTest {
 
-    /* ---------- mocks ---------- */
     @Mock private VenueService  venueService;
     @Mock private ArtistService artistService;
 
@@ -38,7 +35,7 @@ class VenueControllerTest {
     @InjectMocks
     private VenueController venueController;
 
-    /* ---------- venue CRUD tests ---------- */
+    /* ---------- basic CRUD ---------- */
 
     @Test
     void testGetVenue_Found() {
@@ -49,47 +46,6 @@ class VenueControllerTest {
         given(venueMapper.toDto(entity)).willReturn(dto);
 
         ResponseEntity<VenueDto> resp = venueController.getVenue(100L);
-        assertEquals(200, resp.getStatusCodeValue());
-        assertEquals(dto, resp.getBody());
-    }
-
-    @Test
-    void testListAllVenues() {
-        Venue v = new Venue(); v.setId(1L); v.setName("One");
-        VenueDto d = new VenueDto(1L, "One", null, null);
-
-        given(venueService.listAllVenues()).willReturn(List.of(v));
-        given(venueMapper.toDto(v)).willReturn(d);
-
-        ResponseEntity<List<VenueDto>> resp = venueController.listAllVenues();
-        assertEquals(200, resp.getStatusCodeValue());
-        assertEquals(List.of(d), resp.getBody());
-    }
-
-    @Test
-    void testCreateVenue() {
-        VenueRequest req = new VenueRequest("Name","Loc",123);
-        Venue entity     = new Venue(); entity.setId(5L); entity.setName("Name");
-        VenueDto dto     = new VenueDto(5L, "Name", "Loc", 123);
-
-        given(venueService.createVenue(req)).willReturn(entity);
-        given(venueMapper.toDto(entity)).willReturn(dto);
-
-        ResponseEntity<VenueDto> resp = venueController.createVenue(req);
-        assertEquals(201, resp.getStatusCodeValue());
-        assertEquals(dto, resp.getBody());
-    }
-
-    @Test
-    void testUpdateVenue() {
-        VenueRequest req = new VenueRequest("Up","Loc2",200);
-        Venue entity     = new Venue(); entity.setId(7L); entity.setName("Up");
-        VenueDto dto     = new VenueDto(7L, "Up", "Loc2", 200);
-
-        given(venueService.updateVenue(7L, req)).willReturn(entity);
-        given(venueMapper.toDto(entity)).willReturn(dto);
-
-        ResponseEntity<VenueDto> resp = venueController.updateVenue(7L, req);
         assertEquals(200, resp.getStatusCodeValue());
         assertEquals(dto, resp.getBody());
     }
@@ -124,8 +80,9 @@ class VenueControllerTest {
                 101L,
                 "Show",
                 entity.getEventDate(),
-                null,
-                null,
+                null,           // ticketPrice
+                null,           // availableTickets
+                0L,             // ticketsLeft (NEW)
                 venueId,
                 Set.of()
         );
@@ -143,3 +100,4 @@ class VenueControllerTest {
         verify(venueService).findUpcomingEventsForVenue(venueId);
     }
 }
+

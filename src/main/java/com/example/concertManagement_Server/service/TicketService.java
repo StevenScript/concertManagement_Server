@@ -2,6 +2,7 @@ package com.example.concertManagement_Server.service;
 
 import com.example.concertManagement_Server.dto.TicketDto;
 import com.example.concertManagement_Server.dto.TicketRequest;
+import com.example.concertManagement_Server.exception.CapacityExceededException;
 import com.example.concertManagement_Server.exception.ResourceNotFoundException;
 import com.example.concertManagement_Server.mapper.TicketMapper;
 import com.example.concertManagement_Server.model.Event;
@@ -41,9 +42,15 @@ public class TicketService {
     /* ---------- create ---------- */
 
     public TicketDto createTicket(TicketRequest req) {
+
         Event ev = eventRepository.findById(req.getEventId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Event id " + req.getEventId() + " not found"));
+
+        long sold = ticketRepository.countByEventId(ev.getId());
+        if (sold >= ev.getAvailableTickets()) {
+            throw new CapacityExceededException("No tickets left for event \"" + ev.getName() + '"');
+        }
 
         Ticket t = new Ticket();
         t.setEvent(ev);
@@ -83,7 +90,7 @@ public class TicketService {
                 .toList();
     }
 
-    /* ---------- helper ---------- */
+    /* ---------- helpers ---------- */
 
     private String resolveBuyerEmail(String fromRequest) {
         if (fromRequest != null && !fromRequest.isBlank()) {
@@ -91,6 +98,8 @@ public class TicketService {
         }
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
+
+    /* ---------- admin helpers ---------- */
 
     public List<TicketDto> getAllTickets() {
         return ticketRepository.findAll()

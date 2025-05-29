@@ -5,6 +5,8 @@ import com.example.concertManagement_Server.dto.EventRequest;
 import com.example.concertManagement_Server.model.Event;
 import com.example.concertManagement_Server.model.Venue;
 import com.example.concertManagement_Server.model.Artist;
+import com.example.concertManagement_Server.repository.TicketRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -14,24 +16,27 @@ import java.util.stream.Collectors;
  * Maps between Event entity and its DTO/request representations.
  */
 @Component
+@RequiredArgsConstructor          // Lombok – autowires final fields
 public class EventMapper {
 
-    /**
-     * Converts an Event entity to its DTO.
-     *
-     * @param event the source Event entity
-     * @return a new EventDto containing event details
-     */
+    private final TicketRepository ticketRepository;   // 👈 NEW ❷
+
     public EventDto toDto(Event event) {
+
+        long sold = ticketRepository.countByEventId(event.getId());
+        long left = event.getAvailableTickets() - sold;   // 👈 NEW ❸
+
         return new EventDto(
                 event.getId(),
                 event.getName(),
                 event.getEventDate(),
                 event.getTicketPrice(),
-                event.getAvailableTickets(),
+                event.getAvailableTickets(),              // capacity
+                left,                                     // ticketsLeft ❹
                 event.getVenue() != null ? event.getVenue().getId() : null,
                 event.getArtists() != null
-                        ? event.getArtists().stream()
+                        ? event.getArtists()
+                        .stream()
                         .map(Artist::getId)
                         .collect(Collectors.toSet())
                         : Set.of()
