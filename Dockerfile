@@ -1,46 +1,41 @@
-##########################
-# 1) Builder stage – Maven
-##########################
+########################
+# 1) Builder stage – uses Maven
+########################
 FROM maven:3.9.5-eclipse-temurin-17 AS builder
-ARG GIT_SHA
-LABEL org.opencontainers.image.revision=$GIT_SHA
 
+# Copy pom.xml first to leverage Docker cache for deps
 WORKDIR /workspace
-
-# leverage Docker cache for dependencies
 COPY pom.xml .
 RUN mvn -B dependency:resolve dependency:resolve-plugins
 
-# copy and build
+# Copy the actual source and build
 COPY src ./src
 RUN mvn -B clean package -DskipTests
 
-###################################
-# 2) Runtime stage – tiny JRE+alpine
-###################################
+########################
+# 2) Runtime stage – use tiny JRE
+########################
 FROM eclipse-temurin:17-jre-alpine
-ARG GIT_SHA
-LABEL org.opencontainers.image.revision=$GIT_SHA
 
-# install helpers + useradd
-RUN apk add --no-cache bash curl shadow
-
-# create non-root user/group with UID=1001
-RUN addgroup -g 1001 appgroup \
-    && adduser -S -u 1001 -G appgroup appuser
+# Install Bash (for wait-for-it) and curl (if you need it)
+RUN apk add --no-cache bash curl
 
 WORKDIR /app
 
-# grab wait-for-it to block until DB is ready
+# Grab wait-for-it
 ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /wait-for-it.sh
 RUN chmod +x /wait-for-it.sh
 
-# copy the fat‐jar
+# Build‐time argument for git SHA
+ARG GIT_SHA
+LABEL git_sha=$GIT_SHA
+
+# Copy the fat jar from the builder
 COPY --from=builder /workspace/target/*jar /app/app.jar
 
-EXPOSE 8080
+# Run as non-root
+USER 1001
 
-# switch to the non-root user
-USER appuser
+EXPOSE 8080
 
 ENTRYPOINT ["/wait-for-it.sh", "db:3306", "--", "java", "-jar", "/app/app.jar"]

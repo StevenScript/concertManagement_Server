@@ -2,27 +2,39 @@ name: Concert Server CI
 
 on:
   push:
-    branches: [ '**' ]
+    branches: ['**']
   pull_request:
-    branches: [ '**' ]
+    branches: ['**']
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: mysql:8.3
+        env:
+          MYSQL_DATABASE: concertdb
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_USER: concert
+          MYSQL_PASSWORD: concertpass
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -ppassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
-      # 1) Checkout
       - name: Check out code
         uses: actions/checkout@v3
 
-      # 2) Java 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3) Cache Maven
       - name: Cache Maven packages
         uses: actions/cache@v3
         with:
@@ -30,42 +42,25 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      # 4) Build & 5) Test
-      - name: Build & test with Maven
+      - name: Build with Maven
         run: mvn clean install --batch-mode
 
-      # 6) Build Docker Image (with GIT_SHA label)
-      - name: Build Docker Image
-        env:
-          GIT_SHA: ${{ github.sha }}
-        run: |
-          docker build \
-            --build-arg GIT_SHA=${GIT_SHA} \
-            -t concert-management-server:${GIT_SHA} \
-            -t concert-management-server:latest .
+      - name: Run tests
+        run: mvn test --batch-mode
 
-      # 7) Install cosign
+      - name: Build Docker Image
+        run: docker build --build-arg GIT_SHA=${{ github.sha }} -t concert-management-server .
+
       - name: Install cosign
         run: |
-          wget https://github.com/sigstore/cosign/releases/download/v1.15.1/cosign-linux-amd64
-          chmod +x cosign-linux-amd64
-          sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+          wget https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -O cosign
+          chmod +x cosign
+          sudo mv cosign /usr/local/bin/
 
-      # 8) Sign the Image
-      - name: Sign Docker Image
-        env:
-          # You must store COSIGN_KEY and COSIGN_PASSWORD in your repo's Secrets
-          COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          GIT_SHA: ${{ github.sha }}
+      - name: Run Docker Compose & Health Check
         run: |
-          echo "$COSIGN_PASSWORD" | cosign sign --key $COSIGN_KEY concert-management-server:${GIT_SHA}
-
-      # 9) Smoke-test via Docker Compose
-      - name: Run Docker Compose & health-check
-        run: |
-          export GIT_SHA=${{ github.sha }}
           docker compose up -d --build
+          # wait for the backend to start
           sleep 60
           docker compose logs backend
           curl -f http://localhost:8080/actuator/health || (echo "Health check failed" && exit 1)
