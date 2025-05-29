@@ -7,7 +7,7 @@ networks:
   concert-net:
 
 volumes:
-  db-data:
+  db-data:          # durable MySQL data
 
 ########################
 #      SERVICES        #
@@ -36,8 +36,7 @@ services:
       retries: 5
     networks:
       - concert-net
-    ports:
-      - "3307:3306"
+    # <-- removed the `ports:` mapping here to avoid host binding conflicts in CI
 
   ########################
   # Spring-Boot backend  #
@@ -46,32 +45,30 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        # fallback to "dev" if not set
-        GIT_SHA: ${GIT_SHA:-dev}
     container_name: concert-backend
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_healthy    # wait for MySQL
     environment:
-      # ---------- Datasource ----------
+      # Datasource
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/concertdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: concert
       SPRING_DATASOURCE_PASSWORD: concertpass
 
-      # ---------- JPA ----------
+      # JPA
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "false"
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
 
-      # ---------- JWT ----------
+      # JWT
       SECURITY_JWT_SECRET: VerySecretKeyForJwtSigningThatIsAtLeast256BitsLong
       SECURITY_JWT_EXPIRATION_MS: 86400000
 
-      # ---------- JVM tuning (optional) ----------
+      # JVM tuning
       JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     ports:
       - "8080:8080"
     networks:
       - concert-net
+
