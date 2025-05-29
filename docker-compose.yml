@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 ########################
 #  NETWORK + VOLUMES   #
@@ -7,7 +7,7 @@ networks:
   concert-net:
 
 volumes:
-  db-data:          # durable MySQL data
+  db-data:
 
 ########################
 #      SERVICES        #
@@ -36,22 +36,24 @@ services:
       retries: 5
     networks:
       - concert-net
-    # expose ONLY if you need to connect from host; otherwise delete the line
     ports:
       - "3307:3306"
 
   ########################
-  # Spring‑Boot backend  #
+  # Spring-Boot backend  #
   ########################
   backend:
     build:
       context: .
-      dockerfile: Dockerfile          # adjust if your Dockerfile lives elsewhere
+      dockerfile: Dockerfile
+      args:
+        # fallback to "dev" if not set
+        GIT_SHA: ${GIT_SHA:-dev}
     container_name: concert-backend
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy    # wait for MySQL
+        condition: service_healthy
     environment:
       # ---------- Datasource ----------
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/concertdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
@@ -65,7 +67,7 @@ services:
 
       # ---------- JWT ----------
       SECURITY_JWT_SECRET: VerySecretKeyForJwtSigningThatIsAtLeast256BitsLong
-      SECURITY_JWT_EXPIRATION_MS: 86400000   # 24 h; **underscore**, not dash
+      SECURITY_JWT_EXPIRATION_MS: 86400000
 
       # ---------- JVM tuning (optional) ----------
       JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
