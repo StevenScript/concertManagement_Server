@@ -7,7 +7,7 @@ networks:
   concert-net:
 
 volumes:
-  db-data:          # durable MySQL data
+  db-data:
 
 ########################
 #      SERVICES        #
@@ -36,7 +36,7 @@ services:
       retries: 5
     networks:
       - concert-net
-    # <-- removed the `ports:` mapping here to avoid host binding conflicts in CI
+    # <-- no host port mapping, avoids “port already allocated” in CI
 
   ########################
   # Spring-Boot backend  #
@@ -49,9 +49,9 @@ services:
     restart: unless-stopped
     depends_on:
       db:
-        condition: service_healthy    # wait for MySQL
+        condition: service_healthy
     environment:
-      # Datasource
+      # DataSource
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/concertdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: concert
       SPRING_DATASOURCE_PASSWORD: concertpass
@@ -65,10 +65,11 @@ services:
       SECURITY_JWT_SECRET: VerySecretKeyForJwtSigningThatIsAtLeast256BitsLong
       SECURITY_JWT_EXPIRATION_MS: 86400000
 
-      # JVM tuning
+      # JVM tuning (optional)
       JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     ports:
       - "8080:8080"
     networks:
       - concert-net
+
 

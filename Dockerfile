@@ -1,41 +1,35 @@
-########################
-# 1) Builder stage – uses Maven
-########################
+##############################
+# 1) Builder stage – Maven   #
+##############################
 FROM maven:3.9.5-eclipse-temurin-17 AS builder
 
-# Copy pom.xml first to leverage Docker cache for deps
+# leverage cache for dependencies
 WORKDIR /workspace
 COPY pom.xml .
 RUN mvn -B dependency:resolve dependency:resolve-plugins
 
-# Copy the actual source and build
+# copy sources & build
 COPY src ./src
 RUN mvn -B clean package -DskipTests
 
-########################
-# 2) Runtime stage – use tiny JRE
-########################
+###########################################
+# 2) Runtime stage – tiny Alpine JRE 🍃   #
+###########################################
 FROM eclipse-temurin:17-jre-alpine
 
-# Install Bash (for wait-for-it) and curl (if you need it)
+# install bash + curl
 RUN apk add --no-cache bash curl
 
 WORKDIR /app
 
-# Grab wait-for-it
+# grab wait-for-it and make it executable
 ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /wait-for-it.sh
 RUN chmod +x /wait-for-it.sh
 
-# Build‐time argument for git SHA
-ARG GIT_SHA
-LABEL git_sha=$GIT_SHA
-
-# Copy the fat jar from the builder
+# copy our fat jar from builder
 COPY --from=builder /workspace/target/*jar /app/app.jar
-
-# Run as non-root
-USER 1001
 
 EXPOSE 8080
 
-ENTRYPOINT ["/wait-for-it.sh", "db:3306", "--", "java", "-jar", "/app/app.jar"]
+# explicitly invoke via bash (avoids “permission denied” on script)
+ENTRYPOINT ["bash", "/wait-for-it.sh", "db:3306", "--", "java", "-jar", "/app/app.jar"]
