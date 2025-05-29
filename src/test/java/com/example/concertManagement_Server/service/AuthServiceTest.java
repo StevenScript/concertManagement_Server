@@ -5,6 +5,7 @@ import com.example.concertManagement_Server.dto.LoginRequest;
 import com.example.concertManagement_Server.dto.RegisterRequest;
 import com.example.concertManagement_Server.exception.InvalidCredentialsException;
 import com.example.concertManagement_Server.exception.UsernameAlreadyExistsException;
+import com.example.concertManagement_Server.model.RefreshToken;
 import com.example.concertManagement_Server.model.User;
 import com.example.concertManagement_Server.repository.UserRepository;
 import com.example.concertManagement_Server.security.JwtTokenProvider;
@@ -12,28 +13,30 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthServiceTest {
+public class AuthServiceTest {
 
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
-    private JwtTokenProvider jwtTokenProvider;
-    private AuthService authService;
+    @Mock private UserRepository userRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @Mock private JwtTokenProvider jwtTokenProvider;
+    @Mock private RefreshTokenService refreshTokenService; // new mock
+
+    @InjectMocks private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        userRepository = mock(UserRepository.class);
-        passwordEncoder = mock(PasswordEncoder.class);
-        jwtTokenProvider = mock(JwtTokenProvider.class);
-        authService = new AuthService(userRepository, passwordEncoder, jwtTokenProvider);
+        // authService will be initialized by @InjectMocks with all four dependencies
     }
 
     @Test
@@ -42,7 +45,12 @@ class AuthServiceTest {
         when(passwordEncoder.encode("pass123")).thenReturn("hashed");
         when(jwtTokenProvider.generateToken("newuser")).thenReturn("fake-jwt-token");
 
-        RegisterRequest req = new RegisterRequest("newuser", "new@ex.com", "pass123");
+        // stub refresh-token creation (accept any argument, including null)
+        RefreshToken fakeRt = new RefreshToken();
+        fakeRt.setToken("fake-refresh-token");
+        when(refreshTokenService.createRefreshToken(any())).thenReturn(fakeRt);
+
+        RegisterRequest req = new RegisterRequest("newuser", "new@ex.com", "pass123", "USER");
         AuthResponse resp = authService.register(req);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
@@ -56,13 +64,14 @@ class AuthServiceTest {
 
         assertThat(resp.getUsername()).isEqualTo("newuser");
         assertThat(resp.getRole()).isEqualTo("USER");
-        assertThat(resp.getToken()).isEqualTo("fake-jwt-token");
+        assertThat(resp.getAccessToken()).isEqualTo("fake-jwt-token");
+        assertThat(resp.getRefreshToken()).isEqualTo("fake-refresh-token");
     }
 
     @Test
     void register_failsWhenUsernameExists() {
         when(userRepository.existsByUsername("taken")).thenReturn(true);
-        RegisterRequest req = new RegisterRequest("taken", "a@b.com", "xyz");
+        RegisterRequest req = new RegisterRequest("taken", "a@b.com", "xyz", "USER");
         assertThatThrownBy(() -> authService.register(req))
                 .isInstanceOf(UsernameAlreadyExistsException.class)
                 .hasMessageContaining("Username already taken");
@@ -71,6 +80,7 @@ class AuthServiceTest {
     @Test
     void login_success() {
         User u = User.builder()
+                .id(1L)
                 .username("u1")
                 .email("user@email.com")
                 .password("hashedpw")
@@ -80,12 +90,18 @@ class AuthServiceTest {
         when(passwordEncoder.matches("pw", "hashedpw")).thenReturn(true);
         when(jwtTokenProvider.generateToken("u1")).thenReturn("jwt-token-u1");
 
+        // again stub refresh-token creation
+        RefreshToken fakeRt = new RefreshToken();
+        fakeRt.setToken("refresh-jwt-u1");
+        when(refreshTokenService.createRefreshToken(any())).thenReturn(fakeRt);
+
         LoginRequest req = new LoginRequest("u1", "pw");
         AuthResponse resp = authService.login(req);
 
         assertThat(resp.getUsername()).isEqualTo("u1");
         assertThat(resp.getRole()).isEqualTo("USER");
-        assertThat(resp.getToken()).isEqualTo("jwt-token-u1");
+        assertThat(resp.getAccessToken()).isEqualTo("jwt-token-u1");
+        assertThat(resp.getRefreshToken()).isEqualTo("refresh-jwt-u1");
     }
 
     @Test
@@ -114,3 +130,7 @@ class AuthServiceTest {
                 .hasMessageContaining("Invalid username or password");
     }
 }
+
+
+
+

@@ -11,14 +11,12 @@ import org.mockito.Mockito;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Set;
+
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Integration tests for AuthController, verifying JSON request/response
- * for both registration and login endpoints.
- */
 class AuthControllerTest {
 
     private MockMvc mockMvc;
@@ -32,34 +30,33 @@ class AuthControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
-    /** Verifies POST /api/register returns a valid AuthResponse JSON. */
     @Test
     void registerReturnsAuthResponse() throws Exception {
         RegisterRequest req = new RegisterRequest(
                 "alice", "alice@example.com", "password", "USER");
 
         AuthResponse resp = new AuthResponse(
-                42L,                       // id
+                42L,
                 "alice",
                 "alice@example.com",
                 "USER",
-                "jwt-123"
+                "jwt-123",
+                "refresh-123"
         );
-
         given(authService.register(req)).willReturn(resp);
 
         mockMvc.perform(post("/api/register")
                         .contentType("application/json")
                         .content(mapper.writeValueAsString(req)))
-                .andExpect(status().isCreated())             // 201
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(42))
                 .andExpect(jsonPath("$.username").value("alice"))
                 .andExpect(jsonPath("$.email").value("alice@example.com"))
                 .andExpect(jsonPath("$.role").value("USER"))
-                .andExpect(jsonPath("$.token").value("jwt-123"));
+                .andExpect(jsonPath("$.accessToken").value("jwt-123"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-123"));
     }
 
-    /** Verifies POST /api/login returns a valid AuthResponse JSON. */
     @Test
     void loginReturnsAuthResponse() throws Exception {
         LoginRequest req = new LoginRequest("bob", "secret");
@@ -69,9 +66,9 @@ class AuthControllerTest {
                 "bob",
                 "bob@example.com",
                 "ADMIN",
-                "jwt-999"
+                "jwt-999",
+                "refresh-999"
         );
-
         given(authService.login(req)).willReturn(resp);
 
         mockMvc.perform(post("/api/login")
@@ -82,6 +79,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.username").value("bob"))
                 .andExpect(jsonPath("$.email").value("bob@example.com"))
                 .andExpect(jsonPath("$.role").value("ADMIN"))
-                .andExpect(jsonPath("$.token").value("jwt-999"));
+                .andExpect(jsonPath("$.accessToken").value("jwt-999"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-999"));
     }
 }
