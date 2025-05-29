@@ -1,37 +1,73 @@
+# ─────────────────────────────────────────────────────
+# DEFAULT (all profiles)
+# ─────────────────────────────────────────────────────
+security:
+  jwt:
+    # Secret for signing access tokens (fallback if SECURITY_JWT_SECRET env is missing)
+    secret: ${SECURITY_JWT_SECRET:MySuperSecretKey12345}
+    # Access-token lifetime in milliseconds
+    expiration-ms: ${SECURITY_JWT_EXPIRATION_MS:86400000}
+    # Refresh-token lifetime in milliseconds (e.g. 7 days)
+    refresh-expiration-ms: ${SECURITY_JWT_REFRESH_EXPIRATION_MS:604800000}
+
 spring:
-  profiles:
-    active: docker
+  jpa:
+    hibernate:
+      format_sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
 
 ---
 
+# ─────────────────────────────────────────────────────
+# DOCKER PROFILE
+# ─────────────────────────────────────────────────────
 spring:
   config:
     activate:
       on-profile: docker
+
   datasource:
     url: jdbc:mysql://db:3306/concertdb?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-    username: root
-    password: password
+    username: ${SPRING_DATASOURCE_USERNAME:concert}
+    password: ${SPRING_DATASOURCE_PASSWORD:concertpass}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
 ---
 
+# ─────────────────────────────────────────────────────
+# TEST PROFILE
+# ─────────────────────────────────────────────────────
 spring:
   config:
     activate:
       on-profile: test
+
   datasource:
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password:
+
   jpa:
     hibernate:
       ddl-auto: create-drop
