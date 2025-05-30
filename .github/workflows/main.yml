@@ -1,4 +1,4 @@
-name: Full CI/CD
+name: Concert Server CI
 
 on:
   push:
@@ -56,23 +56,17 @@ jobs:
           chmod +x cosign
           sudo mv cosign /usr/local/bin/
 
-      - name: Restore or Generate Cosign Key
+      # Decode your cosign key from a secret, if provided
+      - name: Restore Cosign private key
+        if: ${{ secrets.COSIGN_PRIVATE_KEY }}
         env:
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         run: |
-          if [ -n "$COSIGN_PRIVATE_KEY" ]; then
-            echo "$COSIGN_PRIVATE_KEY" | base64 -d > cosign.key
-            chmod 600 cosign.key
-          else
-            # generate a new password‐protected key pair (optional)
-            cosign generate-key-pair \
-              --password "$COSIGN_PASSWORD" \
-              --key cosign.key \
-              --public cosign.pub
-          fi
+          echo "$COSIGN_PRIVATE_KEY" | base64 -d > cosign.key
+          chmod 600 cosign.key
 
       - name: Sign Docker image
+        if: ${{ secrets.COSIGN_PRIVATE_KEY }}
         run: |
           cosign sign \
             --key cosign.key \
@@ -100,7 +94,7 @@ jobs:
       - name: Check out frontend
         uses: actions/checkout@v3
         with:
-          repository: YOUR_GITHUB_ORG/concert-management-frontend
+          repository: YOUR_ORG/concert-management-frontend
           path: frontend
 
       - name: Use Node.js 18
