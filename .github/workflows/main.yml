@@ -17,7 +17,6 @@ jobs:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_USER: concert
           MYSQL_PASSWORD: concertpass
-        # no ports: mapping, so it only lives on the docker network
         options: >-
           --health-cmd="mysqladmin ping -h localhost -ppassword"
           --health-interval=10s
@@ -57,11 +56,26 @@ jobs:
           chmod +x cosign
           sudo mv cosign /usr/local/bin/
 
+      - name: Restore or Generate Cosign Key
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        run: |
+          if [ -n "$COSIGN_PRIVATE_KEY" ]; then
+            echo "$COSIGN_PRIVATE_KEY" | base64 -d > cosign.key
+            chmod 600 cosign.key
+          else
+            # generate a new password‐protected key pair (optional)
+            cosign generate-key-pair \
+              --password "$COSIGN_PASSWORD" \
+              --key cosign.key \
+              --public cosign.pub
+          fi
+
       - name: Sign Docker image
         run: |
-          # NOTE: replace the --key reference with your own key location
           cosign sign \
-            --key k8s://sigstore-cosign-secret \
+            --key cosign.key \
             concert-management-server:${{ github.sha }}
 
       - name: Bring up stack & health check
@@ -83,11 +97,9 @@ jobs:
     needs: build-and-test-backend
 
     steps:
-      # 1) Check out your frontend repo into ./frontend
       - name: Check out frontend
         uses: actions/checkout@v3
         with:
-          # **Adjust this** to your actual GitHub org/user and repo name
           repository: YOUR_GITHUB_ORG/concert-management-frontend
           path: frontend
 
