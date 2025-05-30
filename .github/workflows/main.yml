@@ -9,6 +9,10 @@ on:
 jobs:
   build-and-test-backend:
     runs-on: ubuntu-latest
+    # bring your cosign key into the environment so we can test if it's set
+    env:
+      COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+
     services:
       db:
         image: mysql:8.3
@@ -31,7 +35,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: 17
+          java-version: '17'
 
       - name: Cache Maven packages
         uses: actions/cache@v3
@@ -56,17 +60,15 @@ jobs:
           chmod +x cosign
           sudo mv cosign /usr/local/bin/
 
-      # Decode your cosign key from a secret, if provided
+      # Only decode & import the key if it's actually been provided
       - name: Restore Cosign private key
-        if: ${{ secrets.COSIGN_PRIVATE_KEY }}
-        env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        if: ${{ env.COSIGN_PRIVATE_KEY != '' }}
         run: |
           echo "$COSIGN_PRIVATE_KEY" | base64 -d > cosign.key
           chmod 600 cosign.key
 
       - name: Sign Docker image
-        if: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        if: ${{ env.COSIGN_PRIVATE_KEY != '' }}
         run: |
           cosign sign \
             --key cosign.key \
@@ -78,12 +80,10 @@ jobs:
           sleep 30
           docker compose logs backend
           curl -f http://localhost:8080/actuator/health
-        shell: bash
 
       - name: Tear down
         if: always()
         run: docker compose down
-        shell: bash
 
   audit-and-build-frontend:
     name: Frontend Audit & Build
