@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor   // existing 4‑arg ctor: (username, email, password, role)
+@AllArgsConstructor  // (username, email, password, role)
 public class RegisterRequest {
     private String username;
     private String email;
@@ -17,7 +17,7 @@ public class RegisterRequest {
     private String role;
 
     /**
-     * Convenience constructor defaulting role to \"USER\".
+     * Convenience constructor defaulting role to "USER".
      */
     public RegisterRequest(String username, String email, String password) {
         this.username = username;

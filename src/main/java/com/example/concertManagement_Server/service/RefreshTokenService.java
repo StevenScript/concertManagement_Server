@@ -30,6 +30,7 @@ public class RefreshTokenService {
     /**
      * Create a new refresh token for the given user, revoking any prior one.
      */
+    @Transactional  // <- IMPORTANT FIX
     public RefreshToken createRefreshToken(Long userId) {
         // revoke any existing
         refreshTokenRepository.deleteByUserId(userId);
@@ -49,6 +50,7 @@ public class RefreshTokenService {
     /**
      * Look up a stored RefreshToken by its token string.
      */
+    @Transactional(readOnly = true)
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
     }
@@ -56,6 +58,7 @@ public class RefreshTokenService {
     /**
      * Verify that a refresh token has not expired or been revoked.
      */
+    @Transactional
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().isBefore(Instant.now())) {
             token.setRevoked(true);
@@ -79,4 +82,5 @@ public class RefreshTokenService {
         });
     }
 }
+
 

@@ -56,4 +56,15 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<Map<String,Object>> handleLocked(AccountLockedException ex) {
+        Map<String,Object> body = Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", HttpStatus.LOCKED.value(),
+                "error", "Account Locked",
+                "message", ex.getMessage()
+        );
+        return new ResponseEntity<>(body, HttpStatus.LOCKED);
+    }
 }

@@ -9,7 +9,7 @@ import com.example.concertManagement_Server.model.RefreshToken;
 import com.example.concertManagement_Server.model.User;
 import com.example.concertManagement_Server.repository.UserRepository;
 import com.example.concertManagement_Server.security.JwtTokenProvider;
-import org.junit.jupiter.api.BeforeEach;
+import com.example.concertManagement_Server.security.LoginAttemptService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,14 +31,10 @@ public class AuthServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtTokenProvider jwtTokenProvider;
-    @Mock private RefreshTokenService refreshTokenService; // new mock
+    @Mock private RefreshTokenService refreshTokenService;
+    @Mock private LoginAttemptService loginAttemptService;
 
     @InjectMocks private AuthService authService;
-
-    @BeforeEach
-    void setUp() {
-        // authService will be initialized by @InjectMocks with all four dependencies
-    }
 
     @Test
     void register_success() {
@@ -45,7 +42,6 @@ public class AuthServiceTest {
         when(passwordEncoder.encode("pass123")).thenReturn("hashed");
         when(jwtTokenProvider.generateToken("newuser")).thenReturn("fake-jwt-token");
 
-        // stub refresh-token creation (accept any argument, including null)
         RefreshToken fakeRt = new RefreshToken();
         fakeRt.setToken("fake-refresh-token");
         when(refreshTokenService.createRefreshToken(any())).thenReturn(fakeRt);
@@ -79,6 +75,9 @@ public class AuthServiceTest {
 
     @Test
     void login_success() {
+        // allow login flow (no lockout)
+        when(loginAttemptService.isLocked(anyString())).thenReturn(false);
+
         User u = User.builder()
                 .id(1L)
                 .username("u1")
@@ -90,7 +89,6 @@ public class AuthServiceTest {
         when(passwordEncoder.matches("pw", "hashedpw")).thenReturn(true);
         when(jwtTokenProvider.generateToken("u1")).thenReturn("jwt-token-u1");
 
-        // again stub refresh-token creation
         RefreshToken fakeRt = new RefreshToken();
         fakeRt.setToken("refresh-jwt-u1");
         when(refreshTokenService.createRefreshToken(any())).thenReturn(fakeRt);
@@ -106,6 +104,9 @@ public class AuthServiceTest {
 
     @Test
     void login_failsWhenUserNotFound() {
+        // allow login flow (no lockout)
+        when(loginAttemptService.isLocked(anyString())).thenReturn(false);
+
         when(userRepository.findByUsername("nope")).thenReturn(Optional.empty());
         LoginRequest req = new LoginRequest("nope", "anything");
         assertThatThrownBy(() -> authService.login(req))
@@ -115,6 +116,9 @@ public class AuthServiceTest {
 
     @Test
     void login_failsWhenPasswordMismatch() {
+        // allow login flow (no lockout)
+        when(loginAttemptService.isLocked(anyString())).thenReturn(false);
+
         User u = User.builder()
                 .username("u2")
                 .email("u2@email.com")
@@ -130,6 +134,8 @@ public class AuthServiceTest {
                 .hasMessageContaining("Invalid username or password");
     }
 }
+
+
 
 
 
