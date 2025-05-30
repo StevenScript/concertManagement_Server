@@ -1,4 +1,4 @@
-name: Concert Backend CI
+name: Concert Server CI
 
 on:
   push:
@@ -7,8 +7,7 @@ on:
     branches: ['**']
 
 jobs:
-  backend:
-    name: Build & Test Backend
+  build-and-test:
     runs-on: ubuntu-latest
     services:
       db:
@@ -24,7 +23,7 @@ jobs:
           --health-cmd="mysqladmin ping -h localhost -ppassword"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=5s
 
     steps:
       - name: Check out code
@@ -33,8 +32,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Cache Maven packages
         uses: actions/cache@v3
@@ -43,16 +42,16 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: Build & verify with Maven
-        run: mvn clean verify -DskipITs --batch-mode
-
-      - name: Run backend unit tests
-        run: mvn test --batch-mode
+      - name: Build & test backend
+        run: |
+          mvn clean verify -B
 
       - name: Build Docker image
-        run: docker build \
-          --build-arg GIT_SHA=${{ github.sha }} \
-          -t concert-management-server:${{ github.sha }} .
+        run: |
+          docker build \
+            --build-arg GIT_SHA=${{ github.sha }} \
+            -t concert-management-server:${{ github.sha }} \
+            .
 
       - name: Install cosign
         run: |
@@ -61,10 +60,12 @@ jobs:
           sudo mv cosign /usr/local/bin/
 
       - name: Sign Docker image
-        run: cosign sign --key k8s://sigstore-cosign-secret concert-management-server:${{ github.sha }}
-        # adjust key reference as needed
+        run: |
+          cosign sign \
+            --key k8s://sigstore-cosign-secret \
+            concert-management-server:${{ github.sha }}
 
-      - name: Run Docker Compose & health check
+      - name: Run Docker Compose & Health Check
         run: |
           docker compose up -d --build
           sleep 30
@@ -73,25 +74,31 @@ jobs:
           docker compose down
         shell: bash
 
-  frontend-audit:
-    name: Audit Frontend Dependencies
+  audit-frontend:
+    name: Frontend Security & Build
     runs-on: ubuntu-latest
-    needs: backend
-    defaults:
-      run:
-        working-directory: ./concert-management-frontend  # adjust if your front-end is elsewhere
+    needs: build-and-test
 
     steps:
-      - name: Check out code
+      - name: Check out frontend
         uses: actions/checkout@v3
+        with:
+          # assumes your frontend lives in a sibling repo; adjust if it's in mono‐repo
+          repository: your-org/concert-management-frontend
+          path: frontend
 
-      - name: Use Node.js 18.x
+      - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: '18'
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install & audit
+        working-directory: frontend
+        run: |
+          npm ci
+          npm audit --production
 
-      - name: Run production audit
-        run: npm audit --production
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
