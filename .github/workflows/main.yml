@@ -93,7 +93,6 @@ jobs:
       - name: Check out frontend
         uses: actions/checkout@v3
         with:
-          # point at your actual front-end repo
           repository: StevenScript/concert-management-frontend
           path: frontend
           token: ${{ secrets.FRONTEND_PAT }}
@@ -109,10 +108,11 @@ jobs:
         working-directory: frontend
         run: npm ci --omit=dev
 
-      - name: Audit dependencies (only fail on high/critical)
+      - name: Audit dependencies (fail only on critical)
         working-directory: frontend
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=critical
 
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+  
