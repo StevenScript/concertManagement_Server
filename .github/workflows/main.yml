@@ -93,6 +93,7 @@ jobs:
       - name: Check out frontend
         uses: actions/checkout@v3
         with:
+          # point at your actual front-end repo
           repository: StevenScript/concert-management-frontend
           path: frontend
           token: ${{ secrets.FRONTEND_PAT }}
@@ -104,11 +105,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install & audit dependencies
+      - name: Install dependencies
         working-directory: frontend
-        run: |
-          npm ci --omit=dev
-          npm audit --production --audit-level=high
+        run: npm ci --omit=dev
+
+      - name: Audit dependencies (only fail on high/critical)
+        working-directory: frontend
+        run: npm audit --audit-level=high
 
       - name: Build frontend
         working-directory: frontend
