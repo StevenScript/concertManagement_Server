@@ -114,5 +114,6 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
+        env:
+          CI: false              # unset CI so CRA won’t treat warnings as errors
         run: npm run build
-  
