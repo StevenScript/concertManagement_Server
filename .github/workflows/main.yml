@@ -97,11 +97,12 @@ jobs:
           path: frontend
           token: ${{ secrets.FRONTEND_PAT }}
 
-      - name: Use Node.js 18
+      - name: Use Node.js 18 and cache deps
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install & audit dependencies
         working-directory: frontend
