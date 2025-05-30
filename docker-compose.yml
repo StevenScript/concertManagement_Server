@@ -15,6 +15,25 @@ volumes:
 services:
 
   ########################
+  #  TLS TERMINATION     #
+  ########################
+  proxy:
+    image: nginx:1.27-alpine
+    container_name: concert-proxy
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
+      - ./certs/privkey.pem:/etc/ssl/private/privkey.pem:ro
+    networks:
+      - concert-net
+
+  ########################
   # MySQL 8.3 container  #
   ########################
   db:
@@ -36,7 +55,7 @@ services:
       retries: 5
     networks:
       - concert-net
-    # <-- no host port mapping, avoids “port already allocated” in CI
+    # no host port mapping to avoid conflicts in CI
 
   ########################
   # Spring-Boot backend  #
@@ -65,11 +84,18 @@ services:
       SECURITY_JWT_SECRET: VerySecretKeyForJwtSigningThatIsAtLeast256BitsLong
       SECURITY_JWT_EXPIRATION_MS: 86400000
 
+      # OpenTelemetry (optional)
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+
       # JVM tuning (optional)
       JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
     ports:
       - "8080:8080"
     networks:
       - concert-net
-
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 

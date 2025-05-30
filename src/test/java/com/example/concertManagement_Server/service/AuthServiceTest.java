@@ -47,8 +47,21 @@ public class AuthServiceTest {
         when(refreshTokenService.createRefreshToken(any())).thenReturn(fakeRt);
 
         RegisterRequest req = new RegisterRequest("newuser", "new@ex.com", "pass123", "USER");
+
+        // 👇 Define the saved user (with ID) and return it from the mock
+        User mockSaved = User.builder()
+                .id(42L)
+                .username("newuser")
+                .email("new@ex.com")
+                .password("hashed")
+                .role("USER")
+                .build();
+
+        when(userRepository.save(any())).thenReturn(mockSaved);
+
         AuthResponse resp = authService.register(req);
 
+        // Optional: you can still verify what was passed to .save()
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
         User saved = userCaptor.getValue();

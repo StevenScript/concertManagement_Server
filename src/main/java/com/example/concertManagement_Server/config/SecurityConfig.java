@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.example.concertManagement_Server.security.JwtAuthFilter;
 
 import java.util.List;
 
@@ -27,30 +29,28 @@ public class SecurityConfig {
     @Autowired
     private TicketsRateLimitFilter ticketsRateLimitFilter;
 
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CORS / CSRF
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
 
-                // Rate-limit filters must come before any authentication
                 .addFilterBefore(loginRateLimitFilter, BasicAuthenticationFilter.class)
                 .addFilterBefore(ticketsRateLimitFilter, BasicAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // ✅ hook in JWT filter
 
-                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        // Open POST endpoints for auth
                         .requestMatchers(HttpMethod.POST,
                                 "/api/login",
                                 "/api/register",
                                 "/api/refresh"
                         ).permitAll()
 
-                        // Actuator & stats are public
                         .requestMatchers("/actuator/**", "/stats/**").permitAll()
 
-                        // Public GETs for browsing
                         .requestMatchers(HttpMethod.GET,
                                 "/venues/**",
                                 "/artists/**",
@@ -59,14 +59,10 @@ public class SecurityConfig {
                                 "/users/**"
                         ).permitAll()
 
-                        // Everything else requires authentication
                         .anyRequest().authenticated()
-                )
+                );
 
-                // We'll use HTTP Basic for simplicity (or you can swap in JWT filters here)
-                .httpBasic(Customizer.withDefaults());
-
-        return http.build();
+        return http.build(); // ❌ No httpBasic() here anymore
     }
 
     @Bean
@@ -74,9 +70,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Allow all origins + methods + credentials on our API.
-     */
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
