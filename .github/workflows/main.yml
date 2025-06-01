@@ -63,7 +63,7 @@ jobs:
       # 4) Cache and build with Maven
       # ───────────────────────────────────────────────────────────────
       - name: Cache Maven packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
