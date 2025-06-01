@@ -10,8 +10,13 @@ jobs:
   build-and-test-backend:
     runs-on: ubuntu-latest
     env:
-      # pull in your cosign key (base64-encoded) to sign images if provided
+      # Pull in your cosign key (base64-encoded) if provided
       COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+
+      # AWS credentials/secrets
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
 
     services:
       db:
@@ -28,15 +33,35 @@ jobs:
           --health-retries=5
 
     steps:
+      # ───────────────────────────────────────────────────────────────
+      # 1) AWS CLI Configuration
+      #    This step ensures subsequent "aws" or "eb" commands can authenticate.
+      # ───────────────────────────────────────────────────────────────
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ───────────────────────────────────────────────────────────────
+      # 2) Check out the backend code
+      # ───────────────────────────────────────────────────────────────
       - name: Check out backend
         uses: actions/checkout@v3
 
+      # ───────────────────────────────────────────────────────────────
+      # 3) Set up JDK 17 for building the Spring Boot application
+      # ───────────────────────────────────────────────────────────────
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: '17'
 
+      # ───────────────────────────────────────────────────────────────
+      # 4) Cache and build with Maven
+      # ───────────────────────────────────────────────────────────────
       - name: Cache Maven packages
         uses: actions/cache@v3
         with:
@@ -47,6 +72,9 @@ jobs:
       - name: Build & verify with Maven
         run: mvn clean verify --batch-mode
 
+      # ───────────────────────────────────────────────────────────────
+      # 5) Build the backend Docker image
+      # ───────────────────────────────────────────────────────────────
       - name: Build backend Docker image
         run: |
           docker build \
@@ -54,6 +82,10 @@ jobs:
             -t concert-management-server:${{ github.sha }} \
             .
 
+
+      # ───────────────────────────────────────────────────────────────
+      # 6) Install Cosign and (optionally) restore & use your private key
+      # ───────────────────────────────────────────────────────────────
       - name: Install cosign
         run: |
           wget https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -O cosign
@@ -73,6 +105,9 @@ jobs:
             --key cosign.key \
             concert-management-server:${{ github.sha }}
 
+      # ───────────────────────────────────────────────────────────────
+      # 7) Stand up your Docker Compose stack briefly & health-check it
+      # ───────────────────────────────────────────────────────────────
       - name: Bring up stack & health check
         run: |
           docker compose up -d --build
@@ -115,5 +150,5 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         env:
-          CI: false              # unset CI so CRA won’t treat warnings as errors
+          CI: false   # so that CRA/React won’t treat warnings as errors
         run: npm run build
