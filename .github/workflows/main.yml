@@ -133,7 +133,7 @@ jobs:
           token: ${{ secrets.FRONTEND_PAT }}
 
       - name: Use Node.js 20 and cache deps
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
