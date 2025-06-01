@@ -48,7 +48,7 @@ jobs:
       # 2) Check out the backend code
       # ───────────────────────────────────────────────────────────────
       - name: Check out backend
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # ───────────────────────────────────────────────────────────────
       # 3) Set up JDK 17 for building the Spring Boot application
@@ -126,7 +126,7 @@ jobs:
 
     steps:
       - name: Check out frontend
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: StevenScript/concert-management-frontend
           path: frontend
