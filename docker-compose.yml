@@ -50,22 +50,35 @@ services:
       db:
         condition: service_healthy
     environment:
-      # DataSource
+      #######################
+      #  DataSource
+      #######################
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/concertdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: concert
       SPRING_DATASOURCE_PASSWORD: concertpass
 
-      # JPA
+      #######################
+      #  JPA
+      #######################
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "false"
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
 
-      # JWT
+      #######################
+      #  JWT
+      #######################
       SECURITY_JWT_SECRET: MzJieXRlc2xvbmdrZXl3aXRobnVtYmVyczEyMzQ1Ng==
       SECURITY_JWT_EXPIRATION_MS: 86400000
       SECURITY_JWT_REFRESH_EXPIRATION_MS: 604800000
 
-      # JVM tuning (optional)
+      #######################
+      #  Force port 8080  👈
+      #######################
+      SERVER_PORT: "8080"          # overrides EB’s PORT=80
+
+      #######################
+      #  JVM tuning
+      #######################
       JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
     ports:
