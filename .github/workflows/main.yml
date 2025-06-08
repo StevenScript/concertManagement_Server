@@ -51,9 +51,11 @@ jobs:
       - name: Bring up Docker Compose & Health Check
         run: |
           docker compose up -d --build
-          sleep 30
-          docker compose logs backend
-          curl -f http://localhost:8080/actuator/health
+          sleep 40
+          docker ps
+          docker logs concert-backend
+          docker exec concert-backend curl -f http://localhost:8080/actuator/health
+      
 
       - name: Tear down
         if: always()
