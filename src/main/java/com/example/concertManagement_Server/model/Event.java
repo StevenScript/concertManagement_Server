@@ -1,6 +1,5 @@
 package com.example.concertManagement_Server.model;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +9,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Represents an event, including date, pricing, venue, and participating artists.
+ * Represents a concert or performance event, with pricing, artists, and associated venue.
+ * Events have many artists, and belong to one venue.
  */
 @Entity
 @Table(name = "events")
@@ -20,43 +20,30 @@ import java.util.Set;
 @EqualsAndHashCode(exclude = "artists")
 public class Event {
 
-    /**
-     * Unique identifier for the event.
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Human‑readable title, e.g. “Summer Jam 2025”. */
+    /** Display name of the event (e.g. “Summer Jam 2025”). */
     @Column(nullable = false)
     private String name;
 
-    /**
-     * Date of the event.
-     */
+    /** Date on which the event takes place. */
     private LocalDate eventDate;
 
-    /**
-     * Ticket price for the event.
-     */
+    /** Cost of one ticket (in dollars or chosen currency). */
     private Double ticketPrice;
 
-    /**
-     * Number of tickets available for sale.
-     */
+    /** Maximum number of tickets available for purchase. */
     private Integer availableTickets;
 
-    /**
-     * Venue where the event takes place.
-     */
+    /** Venue where this event is scheduled. */
     @ManyToOne
     @JoinColumn(name = "venue_id")
     @JsonIgnoreProperties("events")
     private Venue venue;
 
-    /**
-     * Artists participating in the event.
-     */
+    /** Artists performing at this event. */
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "event_artists",

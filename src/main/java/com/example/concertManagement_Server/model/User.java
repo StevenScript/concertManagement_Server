@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * Represents a system user with credentials and role.
+ * Represents a user of the concert system (admin or regular).
  */
 @Entity
 @Table(name = "users")
@@ -14,34 +14,23 @@ import lombok.*;
 @Builder
 public class User {
 
-    /**
-     * Unique identifier for the user.
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * Username for authentication, must be unique.
-     */
+    /** Unique username used to log in. */
     @Column(unique = true, nullable = false)
     private String username;
 
-    /**
-     * Encrypted password for the user.
-     */
+    /** Hashed user password. */
     @Column(nullable = false)
     private String password;
 
-    /**
-     * Role assigned to the user (e.g., ROLE_USER, ROLE_ADMIN).
-     */
+    /** Role of the user (e.g., ROLE_USER, ROLE_ADMIN). */
     @Column(nullable = false)
     private String role;
 
-    /**
-     * Email address for the user, may be null.
-     */
+    /** Optional email, must be unique if provided. */
     @Column(unique = true)
     private String email;
 }

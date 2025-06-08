@@ -8,7 +8,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Represents a musical artist with their details and associated events.
+ * Represents a musical artist or band, including their genre, group size, and origin city.
+ * Artists can perform at multiple events (Many-to-Many).
  */
 @Entity
 @Table(name = "artists")
@@ -18,36 +19,24 @@ import java.util.Set;
 @EqualsAndHashCode(exclude = "events")
 public class Artist {
 
-    /**
-     * Unique identifier for the artist.
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * Stage name of the artist.
-     */
+    /** The stage name or performance name. */
+    @Column(nullable = false)
     private String stageName;
 
-    /**
-     * Musical genre performed by the artist.
-     */
+    /** The music genre this artist is known for. */
     private String genre;
 
-    /**
-     * Number of members in the artist's group.
-     */
+    /** Number of members (e.g., solo = 1, band = 4, etc.). */
     private Integer membersCount;
 
-    /**
-     * Home city of the artist.
-     */
+    /** The city this artist is based in or represents. */
     private String homeCity;
 
-    /**
-     * Events where the artist is performing.
-     */
+    /** Events this artist is scheduled to perform in. */
     @ManyToMany(mappedBy = "artists")
     @JsonIgnoreProperties("artists")
     private Set<Event> events = new HashSet<>();

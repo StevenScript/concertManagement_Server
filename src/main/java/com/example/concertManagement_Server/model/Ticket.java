@@ -1,12 +1,11 @@
 package com.example.concertManagement_Server.model;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * Represents a ticket purchased for an event.
+ * Represents a single ticket issued for an event.
  */
 @Entity
 @Table(name = "tickets")
@@ -15,33 +14,22 @@ import lombok.*;
 @AllArgsConstructor
 public class Ticket {
 
-    /**
-     * Unique identifier for the ticket.
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * Event associated with this ticket.
-     */
+    /** Event this ticket belongs to. */
     @ManyToOne
-    @JsonIgnoreProperties("tickets")
     @JoinColumn(name = "event_id")
+    @JsonIgnoreProperties("tickets")
     private Event event;
 
-    /**
-     * Seat number assigned to the ticket.
-     */
+    /** Optional seat number (e.g., A12, GA, etc.). */
     private String seatNumber;
 
-    /**
-     * Type of ticket (e.g., VIP, GA).
-     */
+    /** Ticket type or class (e.g., VIP, General Admission). */
     private String ticketType;
 
-    /**
-     * Name of the ticket buyer.
-     */
+    /** Email of the buyer (nullable if user is authenticated). */
     private String buyerEmail;
 }
