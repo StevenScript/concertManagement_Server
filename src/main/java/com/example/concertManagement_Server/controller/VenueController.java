@@ -1,3 +1,18 @@
+/**
+ * VenueController.java
+ *
+ * REST controller responsible for managing venues and related data lookups.
+ * Provides endpoints for:
+ * - Full CRUD operations on venues
+ * - Looking up artists booked at a venue
+ * - Viewing upcoming events scheduled for a venue
+ *
+ * Works closely with:
+ * - VenueService.java (venue logic)
+ * - ArtistService.java (used for cross-linked queries)
+ * - VenueMapper / ArtistMapper / EventMapper (entity <-> DTO mapping)
+ * - VenueRequest / VenueDto / EventDto / ArtistDto (transport models)
+ */
 package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.dto.*;
@@ -9,34 +24,40 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/venues")
 public class VenueController {
 
-    private final VenueService  venueService;
+    private final VenueService venueService;
     private final ArtistService artistService;
-    private final VenueMapper   venueMapper;
-    private final ArtistMapper  artistMapper;   // ← NEW
-    private final EventMapper   eventMapper;    // ← NEW (optional)
+    private final VenueMapper venueMapper;
+    private final ArtistMapper artistMapper;
+    private final EventMapper eventMapper;
 
     public VenueController(
-            VenueService  venueService,
+            VenueService venueService,
             ArtistService artistService,
-            VenueMapper   venueMapper,
-            ArtistMapper  artistMapper,         // ← NEW
-            EventMapper   eventMapper           // ← NEW
+            VenueMapper venueMapper,
+            ArtistMapper artistMapper,
+            EventMapper eventMapper
     ) {
-        this.venueService  = venueService;
+        this.venueService = venueService;
         this.artistService = artistService;
-        this.venueMapper   = venueMapper;
-        this.artistMapper  = artistMapper;      // ← NEW
-        this.eventMapper   = eventMapper;       // ← NEW
+        this.venueMapper = venueMapper;
+        this.artistMapper = artistMapper;
+        this.eventMapper = eventMapper;
     }
 
-    /* ---------- basic CRUD ---------- */
+    /* ─────────────────────────────
+     *       Basic CRUD Endpoints
+     * ───────────────────────────── */
 
+    /**
+     * Retrieves all venues in the system.
+     *
+     * @return list of VenueDto records
+     */
     @GetMapping
     public ResponseEntity<List<VenueDto>> listAllVenues() {
         List<VenueDto> dtos = venueService.listAllVenues().stream()
@@ -45,18 +66,37 @@ public class VenueController {
         return ResponseEntity.ok(dtos);
     }
 
+    /**
+     * Retrieves a specific venue by ID.
+     *
+     * @param id the venue ID
+     * @return VenueDto if found
+     */
     @GetMapping("/{id}")
     public ResponseEntity<VenueDto> getVenue(@PathVariable Long id) {
         VenueDto dto = venueMapper.toDto(venueService.getVenueById(id));
         return ResponseEntity.ok(dto);
     }
 
+    /**
+     * Creates a new venue.
+     *
+     * @param req venue creation request payload
+     * @return 201 Created with new VenueDto
+     */
     @PostMapping
     public ResponseEntity<VenueDto> createVenue(@RequestBody VenueRequest req) {
         var saved = venueService.createVenue(req);
         return ResponseEntity.status(201).body(venueMapper.toDto(saved));
     }
 
+    /**
+     * Updates an existing venue.
+     *
+     * @param id  the venue ID
+     * @param req updated venue fields
+     * @return updated VenueDto
+     */
     @PutMapping("/{id}")
     public ResponseEntity<VenueDto> updateVenue(
             @PathVariable Long id,
@@ -65,9 +105,17 @@ public class VenueController {
         return ResponseEntity.ok(venueMapper.toDto(updated));
     }
 
-    /* ---------- extra look-ups ---------- */
+    /* ───────────────────────────────────────────────
+     *     Custom Lookups: Artists & Events at Venue
+     * ─────────────────────────────────────────────── */
 
-    /** Artists booked at this venue (as DTOs, avoids cyclic JSON). */
+    /**
+     * Retrieves all artists booked at a given venue.
+     * Returned as ArtistDto list to prevent cyclic JSON issues.
+     *
+     * @param id the venue ID
+     * @return list of ArtistDto objects
+     */
     @GetMapping("/{id}/artists")
     public ResponseEntity<List<ArtistDto>> getArtistsForVenue(@PathVariable Long id) {
         List<ArtistDto> dtos = artistService.listAllArtistsForVenue(id).stream()
@@ -76,7 +124,12 @@ public class VenueController {
         return ResponseEntity.ok(dtos);
     }
 
-    /** Upcoming events at this venue (mapped to DTOs for consistency). */
+    /**
+     * Retrieves all upcoming events scheduled at a venue.
+     *
+     * @param id the venue ID
+     * @return list of EventDto objects
+     */
     @GetMapping("/{id}/upcoming-events")
     public ResponseEntity<List<EventDto>> getUpcomingEventsForVenue(@PathVariable Long id) {
         List<EventDto> dtos = venueService.findUpcomingEventsForVenue(id).stream()
@@ -85,8 +138,16 @@ public class VenueController {
         return ResponseEntity.ok(dtos);
     }
 
-    /* ---------- delete ---------- */
+    /* ───────────────────────────────
+     *          Delete Endpoint
+     * ─────────────────────────────── */
 
+    /**
+     * Deletes a venue by ID.
+     *
+     * @param id the venue ID
+     * @return 204 No Content if deleted, 404 if not found
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteVenue(@PathVariable Long id) {
         try {

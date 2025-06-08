@@ -1,3 +1,20 @@
+/**
+ * TicketController.java
+ *
+ * REST controller that manages concert ticket operations.
+ * Supports full CRUD access, both as an admin and as a buyer (via /me).
+ *
+ * Endpoints include:
+ * - Creating and updating tickets
+ * - Fetching individual or all tickets
+ * - Looking up tickets by buyer (authenticated or by email)
+ * - Deleting tickets
+ *
+ * Works closely with:
+ * - TicketService.java (business logic and validation)
+ * - TicketDto / TicketRequest (data transfer models)
+ * - Spring SecurityContextHolder (for user-based lookups)
+ */
 package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.dto.TicketDto;
@@ -21,7 +38,10 @@ public class TicketController {
     }
 
     /**
-     * Retrieves a ticket by ID, responds 404 if not found.
+     * Retrieves a ticket by its unique ID.
+     *
+     * @param id the ticket ID
+     * @return 200 OK with ticket if found, 404 if not
      */
     @GetMapping("/{id}")
     public ResponseEntity<TicketDto> getTicket(@PathVariable Long id) {
@@ -34,7 +54,10 @@ public class TicketController {
     }
 
     /**
-     * Creates a new ticket and returns it with 201 status.
+     * Creates a new ticket based on request data.
+     *
+     * @param req the ticket creation request
+     * @return 201 Created with the new ticket
      */
     @PostMapping
     public ResponseEntity<TicketDto> createTicket(@RequestBody TicketRequest req) {
@@ -43,7 +66,11 @@ public class TicketController {
     }
 
     /**
-     * Updates an existing ticket, responds 404 if not found.
+     * Updates an existing ticket by ID.
+     *
+     * @param id  the ticket ID
+     * @param req updated ticket fields
+     * @return 200 OK with updated ticket, or 404 if not found
      */
     @PutMapping("/{id}")
     public ResponseEntity<TicketDto> updateTicket(
@@ -57,29 +84,53 @@ public class TicketController {
         }
     }
 
+    /**
+     * Retrieves all tickets associated with a specific buyer's email.
+     * Primarily for administrative querying.
+     *
+     * @param email buyer's email address
+     * @return list of tickets purchased by the user
+     */
     @GetMapping("/buyer/{email}")
     public List<TicketDto> ticketsForBuyer(@PathVariable String email) {
         return ticketService.findByBuyerEmail(email);
     }
 
+    /**
+     * Retrieves all tickets purchased by the currently authenticated user.
+     *
+     * @return list of tickets belonging to the logged-in user
+     */
     @GetMapping("/me")
     public List<TicketDto> myTickets() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ticketService.findByBuyerEmail(email);
     }
 
+    /**
+     * Retrieves all tickets in the system.
+     * Generally restricted to admin users.
+     *
+     * @return list of all ticket records
+     */
     @GetMapping
     public List<TicketDto> getAllTickets() {
         return ticketService.getAllTickets();
     }
 
+    /**
+     * Deletes a ticket by ID.
+     *
+     * @param id the ticket ID
+     * @return 204 No Content if deleted, 404 if not found
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
         try {
             ticketService.deleteTicket(id);
-            return ResponseEntity.noContent().build();   // 204
+            return ResponseEntity.noContent().build();
         } catch (ResourceNotFoundException ex) {
-            return ResponseEntity.notFound().build();    // 404
+            return ResponseEntity.notFound().build();
         }
     }
 }

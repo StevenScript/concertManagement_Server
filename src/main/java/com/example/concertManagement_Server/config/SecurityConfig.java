@@ -1,9 +1,25 @@
+/**
+ * SecurityConfig.java
+ *
+ * This configuration class sets up the Spring Security filter chain for the application.
+ * It handles:
+ * - CORS and CSRF settings
+ * - Logging each request’s trace ID via TraceLoggingFilter
+ * - Rate limiting via LoginRateLimitFilter and TicketsRateLimitFilter
+ * - JWT authentication using JwtAuthFilter
+ * - Role-based access rules for all endpoints
+ *
+ * Works closely with:
+ * - JwtAuthFilter.java (JWT validation)
+ * - TraceLoggingFilter.java (MDC trace ID logging)
+ * - LoginRateLimitFilter.java and TicketsRateLimitFilter.java (rate limiting filters)
+ */
 package com.example.concertManagement_Server.config;
 
 import com.example.concertManagement_Server.ratelimit.LoginRateLimitFilter;
 import com.example.concertManagement_Server.ratelimit.TicketsRateLimitFilter;
 import com.example.concertManagement_Server.security.JwtAuthFilter;
-import com.example.concertManagement_Server.config.TraceLoggingFilter;  // ← import your new filter
+import com.example.concertManagement_Server.config.TraceLoggingFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,57 +52,56 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthFilter jwtAuthFilter;
 
+    /**
+     * Configures the Spring Security filter chain:
+     * - Disables CSRF for API usage
+     * - Adds custom filters in the correct order
+     * - Defines public vs protected endpoints
+     *
+     * @param http the HttpSecurity configuration
+     * @return the built SecurityFilterChain
+     * @throws Exception if any configuration fails
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 1) CORS / CSRF
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
 
-                // 2) Trace → MDC (must be first so every subsequent filter/log has the traceId)
+                // Filter chain execution order matters
                 .addFilterBefore(traceLoggingFilter, BasicAuthenticationFilter.class)
-
-                // 3) Rate-limit checks
                 .addFilterBefore(loginRateLimitFilter, BasicAuthenticationFilter.class)
                 .addFilterBefore(ticketsRateLimitFilter, BasicAuthenticationFilter.class)
-
-                // 4) JWT validation
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // 5) Authorization rules
+                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        // Open endpoints for login/register/refresh
-                        .requestMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/refresh")
-                        .permitAll()
-
-                        // Allow unauthenticated access to actuator & landing stats
-                        .requestMatchers("/actuator/**", "/stats/**")
-                        .permitAll()
-
-                        // Public GET browsing
+                        .requestMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/refresh").permitAll()
+                        .requestMatchers("/actuator/**", "/stats/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
-                                "/venues/**",
-                                "/artists/**",
-                                "/events/**",
-                                "/tickets/**",
-                                "/users/**"
+                                "/venues/**", "/artists/**", "/events/**", "/tickets/**", "/users/**"
                         ).permitAll()
-
-                        // Everything else requires JWT auth
                         .anyRequest().authenticated()
                 );
 
-        // no httpBasic() here— we're using JWT exclusively
         return http.build();
     }
 
+    /**
+     * Provides a PasswordEncoder bean using BCrypt.
+     *
+     * @return PasswordEncoder instance
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     /**
-     * Allow all origins + methods + credentials on our API.
+     * Configures global CORS settings.
+     * Allows all origins and common headers/methods.
+     *
+     * @return the configured CorsFilter bean
      */
     @Bean
     public CorsFilter corsFilter() {
@@ -101,4 +116,5 @@ public class SecurityConfig {
         return new CorsFilter(source);
     }
 }
+
 

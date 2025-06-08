@@ -1,3 +1,18 @@
+/**
+ * ArtistController.java
+ *
+ * REST controller responsible for handling all endpoints related to artist operations.
+ * Supports full CRUD operations, as well as additional endpoints to query:
+ * - Events associated with a given artist
+ * - Venues the artist performs at
+ * - Total ticket sales for the artist
+ *
+ * Works closely with:
+ * - ArtistService.java (business logic)
+ * - EventService.java (for artist-event relationship lookups)
+ * - ArtistMapper.java (for mapping between Artist entities and DTOs)
+ * - ArtistRequest / ArtistDto (input/output models)
+ */
 package com.example.concertManagement_Server.controller;
 
 import com.example.concertManagement_Server.dto.ArtistDto;
@@ -31,7 +46,9 @@ public class ArtistController {
     }
 
     /**
-     * Retrieves all artists.
+     * Retrieves all artists in the system.
+     *
+     * @return List of all artists as ArtistDto objects
      */
     @GetMapping
     public List<ArtistDto> getAllArtists() {
@@ -41,7 +58,10 @@ public class ArtistController {
     }
 
     /**
-     * Retrieves a single artist by ID.
+     * Retrieves a single artist by their unique ID.
+     *
+     * @param id the ID of the artist
+     * @return ArtistDto if found, or 404 Not Found if not
      */
     @GetMapping("/{id}")
     public ResponseEntity<ArtistDto> getArtist(@PathVariable Long id) {
@@ -50,7 +70,10 @@ public class ArtistController {
     }
 
     /**
-     * Creates a new artist entry.
+     * Creates a new artist in the system.
+     *
+     * @param req the incoming artist data
+     * @return the newly created artist as ArtistDto with HTTP 201 status
      */
     @PostMapping
     public ResponseEntity<ArtistDto> createArtist(@RequestBody ArtistRequest req) {
@@ -60,7 +83,11 @@ public class ArtistController {
     }
 
     /**
-     * Updates an existing artist.
+     * Updates an existing artist's information.
+     *
+     * @param id  the ID of the artist to update
+     * @param req the updated artist data
+     * @return updated ArtistDto if successful
      */
     @PutMapping("/{id}")
     public ResponseEntity<ArtistDto> updateArtist(
@@ -71,7 +98,10 @@ public class ArtistController {
     }
 
     /**
-     * Lists all events associated with an artist.
+     * Retrieves all events associated with a given artist.
+     *
+     * @param id the artist's ID
+     * @return list of events for the artist
      */
     @GetMapping("/{id}/events")
     public ResponseEntity<List<Event>> getEventsForArtist(@PathVariable Long id) {
@@ -79,7 +109,10 @@ public class ArtistController {
     }
 
     /**
-     * Returns total ticket count for an artist.
+     * Retrieves the total number of tickets sold for an artist's performances.
+     *
+     * @param artistId the artist's ID
+     * @return total ticket count for the artist
      */
     @GetMapping("/{artistId}/ticket-count")
     public ResponseEntity<Long> getTicketCountForArtist(@PathVariable Long artistId) {
@@ -87,20 +120,30 @@ public class ArtistController {
     }
 
     /**
-     * Lists all venues where the artist performs.
+     * Retrieves a list of all venues where the artist has performed or is scheduled to perform.
+     *
+     * @param artistId the artist's ID
+     * @return list of venues for the artist
      */
     @GetMapping("/{artistId}/venues")
     public ResponseEntity<List<Venue>> getVenuesForArtist(@PathVariable Long artistId) {
         return ResponseEntity.ok(artistService.getVenuesForArtist(artistId));
     }
 
+    /**
+     * Deletes an artist by ID. Returns 204 No Content if deleted,
+     * or 404 Not Found if the artist does not exist.
+     *
+     * @param id the artist's ID
+     * @return empty 204 response or 404 if not found
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteArtist(@PathVariable Long id) {
         try {
             artistService.deleteArtist(id);
-            return ResponseEntity.noContent().build();   // 204
+            return ResponseEntity.noContent().build();
         } catch (ResourceNotFoundException ex) {
-            return ResponseEntity.notFound().build();    // 404
+            return ResponseEntity.notFound().build();
         }
     }
 }
