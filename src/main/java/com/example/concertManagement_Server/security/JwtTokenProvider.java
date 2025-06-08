@@ -1,3 +1,13 @@
+/**
+ * JwtTokenProvider.java
+ *
+ * Utility class for generating, parsing, and validating JWT tokens using HS256.
+ * Reads secret key and expiration window from application properties.
+ *
+ * Works closely with:
+ * - JwtAuthFilter.java (authentication filter)
+ * - AuthService.java (token issuing)
+ */
 package com.example.concertManagement_Server.security;
 
 import io.jsonwebtoken.JwtException;
@@ -10,11 +20,6 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
-/**
- * Provides JWT creation and validation using HS256.
- * - Reads the secret and expiration from application properties.
- * - Ensures the secret is at least 256 bits for HS256.
- */
 @Component
 public class JwtTokenProvider {
 
@@ -25,13 +30,15 @@ public class JwtTokenProvider {
             @Value("${security.jwt.secret}") String secret,
             @Value("${security.jwt.expiration-ms}") long validityMillis) {
 
-        // Secret must be ≥256 bits (32 bytes) for HS256
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
         this.validityMillis = validityMillis;
     }
 
     /**
-     * Generates a signed JWT containing the username (subject) and expiration time.
+     * Generates a signed JWT containing the username and expiration time.
+     *
+     * @param username the subject of the token
+     * @return signed JWT as a String
      */
     public String generateToken(String username) {
         Date now = new Date();
@@ -46,7 +53,10 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Parses the JWT and returns its subject (username).
+     * Extracts the username from the provided JWT.
+     *
+     * @param token the JWT string
+     * @return subject (username) of the token
      */
     public String getUsername(String token) {
         return Jwts.parserBuilder()
@@ -58,7 +68,10 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Validates the JWT signature and expiration.
+     * Verifies the integrity and expiration of a JWT.
+     *
+     * @param token the JWT to validate
+     * @return true if valid; false otherwise
      */
     public boolean validateToken(String token) {
         try {

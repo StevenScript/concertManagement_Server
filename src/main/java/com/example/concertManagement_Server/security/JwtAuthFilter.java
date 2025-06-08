@@ -1,3 +1,15 @@
+/**
+ * JwtAuthFilter.java
+ *
+ * Servlet filter that intercepts incoming requests and:
+ * - Extracts JWT tokens from the Authorization header
+ * - Validates them via JwtTokenProvider
+ * - Populates the SecurityContext with an authenticated principal
+ *
+ * Works closely with:
+ * - JwtTokenProvider.java (JWT parsing and validation)
+ * - Spring SecurityContext (authentication context population)
+ */
 package com.example.concertManagement_Server.security;
 
 import jakarta.servlet.FilterChain;
@@ -13,11 +25,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
-/**
- * Filters incoming HTTP requests to:
- * 1. Extract and validate the JWT from the Authorization header.
- * 2. Populate the SecurityContext with an authenticated principal if the token is valid.
- */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -35,7 +42,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // If a Bearer token is present, validate it and set authentication
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
@@ -43,11 +49,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String username = jwtTokenProvider.getUsername(token);
 
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                username,
-                                null,
-                                Collections.emptyList() // No roles for now
-                        );
+                        new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+
                 authentication.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
@@ -56,7 +59,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
 
-        // Continue the filter chain regardless of authentication outcome
         filterChain.doFilter(request, response);
     }
 }
