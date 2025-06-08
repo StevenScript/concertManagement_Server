@@ -1,3 +1,18 @@
+/**
+ * EventRepository.java
+ *
+ * Repository interface for performing CRUD operations on Event entities,
+ * including filtering and reporting capabilities such as:
+ * - Date-based and venue-based event queries
+ * - Events by artist
+ * - Statistical lookups for landing-page components (top-selling, newest, upcoming)
+ *
+ * Works closely with:
+ * - Event.java (entity model)
+ * - EventService.java (business logic layer)
+ * - TicketRepository.java (for sales stats)
+ * - ArtistRepository.java (event-artist relationships)
+ */
 package com.example.concertManagement_Server.repository;
 
 import com.example.concertManagement_Server.model.Event;
@@ -9,36 +24,61 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * CRUD + custom queries for Event.
- */
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    /* ---------------- basic filters ---------------- */
+    // ----- Basic filters -----
 
-    /** All events after a given date (unsorted). */
+    /**
+     * Finds all events occurring after a specified date.
+     *
+     * @param date the cutoff date
+     * @return list of future events
+     */
     List<Event> findByEventDateAfter(LocalDate date);
 
-    /** Upcoming events ascending by date. */
+    /**
+     * Finds all upcoming events ordered chronologically.
+     *
+     * @param today the current date
+     * @return sorted list of future events
+     */
     List<Event> findByEventDateAfterOrderByEventDateAsc(LocalDate today);
 
-    /** Events belonging to an artist. */
+    /**
+     * Retrieves all events associated with a given artist by artist ID.
+     *
+     * @param artistId the ID of the artist
+     * @return list of events for that artist
+     */
     List<Event> findByArtists_Id(Long artistId);
 
-    /** Same via explicit JPQL join. */
+    /**
+     * Alternative JPQL-based query for retrieving artist events.
+     *
+     * @param artistId the ID of the artist
+     * @return list of events the artist is linked to
+     */
     @Query("SELECT e FROM Event e JOIN e.artists a WHERE a.id = :artistId")
     List<Event> findEventsByArtistId(Long artistId);
 
-    /** Events hosted at a venue. */
+    /**
+     * Retrieves all events hosted at a specific venue.
+     *
+     * @param venueId the ID of the venue
+     * @return list of events at that venue
+     */
     List<Event> findByVenueId(Long venueId);
 
 
-    /* ---------------- landing-page stats ---------------- */
+    // ----- Landing-page stats -----
 
     /**
-     * Top events by ticket sales.
-     * Uses a native query because JPQL doesn’t allow COUNT+ORDER+LIMIT easily.
+     * Finds top events based on ticket sales.
+     * Native SQL is used for performance and flexibility.
+     *
+     * @param limit number of top events to return
+     * @return list of top-selling events
      */
     @Query(
             value = """
@@ -52,10 +92,21 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             nativeQuery = true)
     List<Event> findTopEvents(int limit);
 
-    /** Newest events by ID (proxy for created-at). */
+    /**
+     * Finds the most recently created events based on descending ID.
+     *
+     * @param pageable page config with size limit
+     * @return list of newest events
+     */
     List<Event> findByOrderByIdDesc(Pageable pageable);
 
-    /** Events within the next 7 days. */
+    /**
+     * Retrieves events occurring within a specific date range (e.g., next 7 days).
+     *
+     * @param start start of range
+     * @param end   end of range
+     * @return list of events in range, ordered by date
+     */
     @Query("""
          SELECT e FROM Event e
          WHERE e.eventDate BETWEEN :start AND :end

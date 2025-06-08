@@ -1,3 +1,16 @@
+/**
+ * ArtistRepository.java
+ *
+ * Repository interface for performing CRUD operations on Artist entities,
+ * as well as additional custom queries for:
+ * - Retrieving artists booked at a specific venue
+ * - Finding "top" artists tied to specific event IDs
+ *
+ * Works closely with:
+ * - Artist.java (entity model)
+ * - ArtistService.java (business logic layer)
+ * - EventRepository.java (cross-query via events)
+ */
 package com.example.concertManagement_Server.repository;
 
 import com.example.concertManagement_Server.model.Artist;
@@ -8,13 +21,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * CRUD + venue / stats helpers for Artist.
- */
 @Repository
 public interface ArtistRepository extends JpaRepository<Artist, Long> {
 
-    /** Artists booked at a given venue. */
+    /**
+     * Finds all artists who are booked at a given venue.
+     *
+     * @param venueId the ID of the venue
+     * @return list of artists performing at the venue
+     */
     @Query("""
          SELECT DISTINCT a FROM Artist a
          JOIN a.events e
@@ -23,8 +38,12 @@ public interface ArtistRepository extends JpaRepository<Artist, Long> {
     List<Artist> findArtistsByVenueId(Long venueId);
 
     /**
-     * “Top” artists tied to a set of event-IDs (used for landing page).
-     * Pass a Pageable like PageRequest.of(0, limit).
+     * Retrieves a list of artists tied to specific event IDs,
+     * ordered by relevance for landing-page display.
+     *
+     * @param eventIds the list of relevant event IDs
+     * @param pageable a Pageable object (use PageRequest.of(0, limit))
+     * @return list of artists for display
      */
     @Query("""
          SELECT DISTINCT a FROM Artist a
