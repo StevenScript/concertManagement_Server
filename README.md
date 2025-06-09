@@ -1,8 +1,3 @@
-Here’s your **updated and professional README** for your backend. I’ve included the current features, cleaned the prose for polish, updated security features, and added context about deployment, login throttling, DTO use, etc. Let me know if you'd like this exported as a downloadable PDF as well.
-
----
-
-````markdown
 # 🎤 Concert Management Backend
 
 This is the complete backend for the [Concert Management System](https://github.com/StevenScript/concertManagement_Client), built using Spring Boot. It is designed to integrate with a React frontend and supports full CRUD operations, JWT-based authentication, login throttling, and robust data validation.
