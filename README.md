@@ -1,176 +1,216 @@
-## This is the Mostly complete backend meant to work with:
--https://github.com/StevenScript/concertManagement_Server
-De to time retraints, I have not deployed to AWS/Docker. 
-
-## Concert Management Backend
-
-## **Author:** Steven Norris  
-## **Date:** April 19, 2025
-
-
-
-----
-
-**Author:** Steven Norris  
-**Date:** April 19, 2025
-
-## Table of Contents
-
-1. [Introduction](#introduction)
-2. [Features](#features)
-3. [Architecture](#architecture)
-4. [Data Model](#data-model)
-5. [Getting Started](#getting-started)
-6. [API Endpoints](#api-endpoints)
-   - [Authentication](#authentication)
-   - [Artists](#artists)
-   - [Venues](#venues)
-   - [Events](#events)
-   - [Tickets](#tickets)
-7. [Error Handling](#error-handling)
-8. [Security & CORS](#security--cors)
+Here’s your **updated and professional README** for your backend. I’ve included the current features, cleaned the prose for polish, updated security features, and added context about deployment, login throttling, DTO use, etc. Let me know if you'd like this exported as a downloadable PDF as well.
 
 ---
 
-## Introduction
+````markdown
+# 🎤 Concert Management Backend
 
-The **Concert Management Backend** is a Spring Boot application that exposes a RESTful API for managing concerts, artists, venues, events, tickets, and user accounts. It connects to a relational database (e.g., MySQL) and supports JWT‑based authentication, making it suitable for powering a React frontend.
+This is the complete backend for the [Concert Management System](https://github.com/StevenScript/concertManagement_Client), built using Spring Boot. It is designed to integrate with a React frontend and supports full CRUD operations, JWT-based authentication, login throttling, and robust data validation.
 
-## Features
+**Author:** Steven Norris  
+**Last Updated:** June 7, 2025
 
-- **User Authentication:** Register and login with JWT issuance.
-- **Artists:** Create, read, update, list events, ticket counts, and venues for artists.
-- **Venues:** Create, read, update, list scheduled artists, upcoming events.
-- **Events:** CRUD operations, upcoming events, assign artists, list tickets, ticket counts.
-- **Tickets:** Create, read, update tickets by event.
-- **Global Exception Handling:** Consistent JSON error responses.
-- **Security:** CORS enabled; CSRF disabled; supports HTTP Basic or JWT.
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Key Features](#key-features)
+3. [Architecture](#architecture)
+4. [Data Model](#data-model)
+5. [Authentication & Security](#authentication--security)
+6. [API Endpoints](#api-endpoints)
+7. [Error Handling](#error-handling)
+8. [Getting Started](#getting-started)
+9. [Tech Stack](#tech-stack)
+
+---
+
+## Overview
+
+This backend powers a full-stack concert management platform. It allows administrators to manage artists, venues, events, and tickets, while enabling authenticated users to purchase tickets. Built following clean architecture and REST best practices, the system ensures robust role-based access, efficient querying, and modular growth.
+
+Although fully functional, it is not currently deployed to a public cloud due to time constraints. It has been successfully tested locally using MySQL, Postman, and browser-based UIs.
+
+---
+
+## Key Features
+
+- 🔐 **JWT Authentication** with login throttling and brute-force lockout
+- 🧑‍🎤 **Artist Management** with venue and ticket aggregation
+- 🏟 **Venue Management** including upcoming event previews
+- 🎟 **Event Scheduling** with multi-artist support and ticket linking
+- 📄 **Ticket Creation** with buyer details and event mapping
+- ⚙️ **Admin-Only Operations** protected via role-based security
+- ✅ **DTO & Mapping Layer** to separate internal models from public API
+- 🌍 **CORS Support** for frontend integration
+- 🧼 **Centralized Error Handling** with clean JSON responses
+
+---
 
 ## Architecture
 
-This project follows a layered architecture:
+- **Controller Layer** – Exposes RESTful endpoints
+- **Service Layer** – Contains business logic and enforces rules
+- **Repository Layer** – Uses Spring Data JPA for DB operations
+- **Model Layer** – JPA-annotated entities representing core objects
+- **DTOs** – Used for cleaner, validated API communication
+- **Mappers** – Translate between DTOs and Entities
 
-1. **Controller Layer:** Defines REST controllers handling HTTP requests and responses.
-2. **Service Layer:** Contains business logic, orchestrates repository calls, and applies rules.
-3. **Repository Layer:** Interfaces with the database using Spring Data JPA.
-4. **Model & DTOs:** JPA entities represent tables; DTOs and request objects decouple API payloads.
-5. **Mapper Components:** Convert between entities and DTOs.
+---
 
 ## Data Model
 
-- **Artist**:
-   - `id`, `stageName`, `genre`, `membersCount`, `homeCity`
-   - Many-to-many with Event
+| Entity  | Description |
+|---------|-------------|
+| **User** | `id`, `username`, `password`, `role`, `email` |
+| **Artist** | `id`, `stageName`, `genre`, `membersCount`, `homeCity` |
+| **Venue** | `id`, `name`, `location`, `capacity` |
+| **Event** | `id`, `eventDate`, `ticketPrice`, `availableTickets` |
+| **Ticket** | `id`, `seatNumber`, `ticketType`, `buyerName` |
 
-- **Venue**:
-   - `id`, `name`, `location`, `capacity`
-   - One-to-many with Event
+**Relationships:**
 
-- **Event**:
-   - `id`, `eventDate`, `ticketPrice`, `availableTickets`
-   - Many-to-one with Venue
-   - Many-to-many with Artist
-   - One-to-many with Ticket
+- Artist ↔ Event: Many-to-Many  
+- Venue → Event: One-to-Many  
+- Event → Ticket: One-to-Many  
 
-- **Ticket**:
-   - `id`, `seatNumber`, `ticketType`, `buyerName`
-   - Many-to-one with Event
+---
 
-- **User**:
-   - `id`, `username`, `password`, `role`, `email`
+## Authentication & Security
 
-## Getting Started
+- ✅ **JWT Issuance:** On login, JWT is generated and sent in the Authorization header
+- 🔒 **Login Throttling:** After 3 failed login attempts, user is locked for 15 minutes
+- 🧱 **SecurityContext:** Automatically populated by `JwtAuthFilter` for authorized requests
+- 🧩 **CORS:** Enabled globally (`*` origin for development)
+- ❌ **CSRF:** Disabled for API compatibility
 
-### Prerequisites
-
-- Java 17 or later
-- Maven or Gradle
-- MySQL (or other supported datasource)
-
-### Build & Run
-
-1. Clone the repository.
-2. Configure `application.properties` with your datasource and JWT properties.
-3. Build and run:
-   ```bash
-   mvn spring-boot:run
-   # or
-   ./gradlew bootRun
-   ```
-4. Access the API at `http://localhost:8080`.
+---
 
 ## API Endpoints
 
-### Authentication
+### 🔐 Authentication
 
 | Method | URI             | Description                    |
 |--------|-----------------|--------------------------------|
 | POST   | `/api/register` | Register a new user            |
 | POST   | `/api/login`    | Authenticate and receive JWT   |
 
-### Artists
+### 🧑‍🎤 Artists
 
-| Method | URI                                 | Description                               |
-|--------|-------------------------------------|-------------------------------------------|
-| GET    | `/artists`                          | List all artists                          |
-| GET    | `/artists/{id}`                     | Get artist by ID                          |
-| POST   | `/artists`                          | Create artist                             |
-| PUT    | `/artists/{id}`                     | Update artist                             |
-| GET    | `/artists/{id}/events`              | List events for an artist                 |
-| GET    | `/artists/{id}/ticket-count`        | Total tickets sold for an artist          |
-| GET    | `/artists/{id}/venues`              | List venues where an artist performs      |
+| Method | URI                          | Description                               |
+|--------|------------------------------|-------------------------------------------|
+| GET    | `/artists`                   | List all artists                          |
+| GET    | `/artists/{id}`              | Get artist by ID                          |
+| POST   | `/artists`                   | Create new artist                         |
+| PUT    | `/artists/{id}`              | Update artist info                        |
+| GET    | `/artists/{id}/events`       | List events for an artist                 |
+| GET    | `/artists/{id}/ticket-count` | Count of tickets sold across all events   |
+| GET    | `/artists/{id}/venues`       | List venues where artist has performed    |
 
-### Venues
+### 🏟 Venues
 
-| Method | URI                                     | Description                                 |
-|--------|-----------------------------------------|---------------------------------------------|
-| GET    | `/venues`                               | List all venues                             |
-| GET    | `/venues/{id}`                          | Get venue by ID                             |
-| POST   | `/venues`                               | Create venue                                |
-| PUT    | `/venues/{id}`                          | Update venue                                |
-| GET    | `/venues/{id}/artists`                  | List artists scheduled at a venue           |
-| GET    | `/venues/{id}/upcoming-events`          | List upcoming events at a venue             |
+| Method | URI                             | Description                                |
+|--------|---------------------------------|--------------------------------------------|
+| GET    | `/venues`                      | List all venues                            |
+| GET    | `/venues/{id}`                 | Get venue by ID                            |
+| POST   | `/venues`                      | Create new venue                           |
+| PUT    | `/venues/{id}`                 | Update venue info                          |
+| GET    | `/venues/{id}/artists`         | List scheduled artists                     |
+| GET    | `/venues/{id}/upcoming-events` | List upcoming events at venue              |
+| GET    | `/venues/hottest?limit=N`     | Top N venues by event count (analytics)    |
 
-### Events
+### 🎤 Events
 
-| Method | URI                                          | Description                                  |
-|--------|----------------------------------------------|----------------------------------------------|
-| GET    | `/events`                                    | List all events                              |
-| GET    | `/events/upcoming`                           | List events after today                      |
-| GET    | `/events/{id}`                               | Get event by ID                              |
-| POST   | `/events`                                    | Create event                                 |
-| PUT    | `/events/{id}`                               | Update event                                 |
-| GET    | `/events/artist/{artistId}`                  | List events by artist                        |
-| POST   | `/events/{eventId}/artists/{artistId}`       | Add artist to an event                       |
-| GET    | `/events/{id}/tickets`                      | List tickets for an event                    |
-| GET    | `/events/{id}/ticket-count`                 | Count tickets sold for an event              |
+| Method | URI                                      | Description                             |
+|--------|------------------------------------------|-----------------------------------------|
+| GET    | `/events`                                | List all events                         |
+| GET    | `/events/upcoming`                       | Events scheduled after today            |
+| GET    | `/events/{id}`                           | Get event by ID                         |
+| POST   | `/events`                                | Create a new event                      |
+| PUT    | `/events/{id}`                           | Update event info                       |
+| GET    | `/events/artist/{artistId}`              | List events an artist is performing at  |
+| POST   | `/events/{eventId}/artists/{artistId}`   | Add artist to an event                  |
+| GET    | `/events/{id}/tickets`                   | Get all tickets for an event            |
+| GET    | `/events/{id}/ticket-count`              | Count of tickets sold for this event    |
 
-### Tickets
+### 🎟 Tickets
 
-| Method | URI                  | Description                  |
-|--------|----------------------|------------------------------|
-| GET    | `/tickets/{id}`      | Get ticket by ID             |
-| POST   | `/tickets`           | Create ticket                |
-| PUT    | `/tickets/{id}`      | Update ticket                |
+| Method | URI              | Description                 |
+|--------|------------------|-----------------------------|
+| GET    | `/tickets/{id}`  | Get ticket by ID            |
+| POST   | `/tickets`       | Create a new ticket         |
+| PUT    | `/tickets/{id}`  | Update ticket info          |
+
+---
 
 ## Error Handling
 
-All errors return HTTP status codes with a JSON body:
+All exceptions are caught and returned with structured JSON responses:
+
 ```json
 {
   "timestamp": "2025-04-19T12:34:56.789",
   "status": 404,
   "error": "Not Found",
-  "message": "Detailed error message"
+  "message": "Event not found"
 }
-```
-
-## Security & CORS
-
-- **CORS**: `*` origins allowed; GET, POST, PUT, DELETE, OPTIONS
-- **CSRF**: Disabled
-- **Auth**: HTTP Basic or JWT
+````
 
 ---
-*This documentation reflects the upgraded project structure and endpoints.*
 
+## Getting Started
+
+### Prerequisites
+
+* Java 17+
+* Maven (or Gradle)
+* MySQL (or compatible RDBMS)
+
+### Running Locally
+
+1. **Clone the repo:**
+
+   ```bash
+   git clone https://github.com/StevenScript/concertManagement_Server
+   cd concertManagement_Server
+   ```
+
+2. **Configure your database connection and JWT settings**
+   Edit `src/main/resources/application.properties`:
+
+   ```
+   spring.datasource.url=jdbc:mysql://localhost:3306/concertdb
+   spring.datasource.username=concert
+   spring.datasource.password=concertpass
+   security.jwt.secret=Your256BitSecretKeyHere
+   security.jwt.expiration-ms=86400000
+   ```
+
+3. **Start the app:**
+
+   ```bash
+   mvn spring-boot:run
+   ```
+
+4. **Access**: `http://localhost:8080`
+
+---
+
+## Tech Stack
+
+* **Java 17**
+* **Spring Boot 3+**
+* **Spring Security (JWT)**
+* **Spring Data JPA**
+* **MySQL**
+* **MapStruct (optional, for DTO mapping)**
+* **JUnit + Mockito for testing**
+
+---
+
+## Notes
+
+* 🧪 **Tested** with Postman and frontend integration
+* 🐳 Deployment to Docker/AWS planned post-graduation
+* 👨‍💻 Designed for learning, but built with production standards
